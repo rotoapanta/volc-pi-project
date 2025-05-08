@@ -1,9 +1,10 @@
-# Ignorar carpetas generadas por Python
+# Ignorar carpetas y archivos generados por Python
 __pycache__/
 *.pyc
 
-# Ignorar logs y datos generados
-DTA/2025/logs/
+# Ignorar logs y datos generados en cualquier subcarpeta de DTA
+DTA/**/logs/
+DTA/**/*.log
 *.log
 
 # Ignorar archivos temporales o backups
@@ -11,4 +12,4 @@ DTA/2025/logs/
 *.bak
 
 # Ignorar scripts de ejecución local (si no quieres subirlos)
-DTA/2025/scripts/format_usb.sh
+DTA/**/format_usb.sh
