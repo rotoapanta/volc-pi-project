@@ -1,0 +1,13 @@
+{
+    "TIPO": "PLUVIOMETRIA",
+    "NOMBRE": "IG01",
+    "IDENTIFICADOR": 1,
+    "LECTURAS": [
+        {
+            "FECHA": "2025-04-30",
+            "TIEMPO": "15:37:00",
+            "NIVEL": 0.0,
+            "BATERIA": 0.0
+        }
+    ]
+}

@@ -1,0 +1,115 @@
+{
+    "TIPO": "PLUVIOMETRIA",
+    "NOMBRE": "REVS2",
+    "IDENTIFICADOR": 1,
+    "LECTURAS": [
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:41:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:43:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:44:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:45:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:46:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:47:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:48:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:49:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:50:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:51:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:52:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:53:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:54:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:55:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:56:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:57:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:58:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-11",
+            "TIEMPO": "11:59:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        }
+    ]
+}

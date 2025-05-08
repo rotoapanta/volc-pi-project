@@ -1,0 +1,367 @@
+{
+    "TIPO": "PLUVIOMETRIA",
+    "NOMBRE": "REVS2",
+    "IDENTIFICADOR": 1,
+    "LECTURAS": [
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:00:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:01:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:02:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:03:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:04:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:05:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:06:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:07:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:08:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:09:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:10:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:11:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:12:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:13:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:14:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:15:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:16:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:17:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:18:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:19:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:20:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:21:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:22:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:23:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:24:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:25:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:26:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:27:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:28:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:29:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:30:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:31:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:32:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:33:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:34:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:35:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:36:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:37:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:38:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:39:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:40:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:41:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:42:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:43:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:44:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:45:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:46:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:47:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:48:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:49:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:50:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:51:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:52:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:53:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:54:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:55:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:56:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:57:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:58:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        },
+        {
+            "FECHA": "2025-04-08",
+            "TIEMPO": "06:59:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.5
+        }
+    ]
+}

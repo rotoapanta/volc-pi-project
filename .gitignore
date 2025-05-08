@@ -1,0 +1,14 @@
+# Ignorar carpetas generadas por Python
+__pycache__/
+*.pyc
+
+# Ignorar logs y datos generados
+DTA/2025/logs/
+*.log
+
+# Ignorar archivos temporales o backups
+*~
+*.bak
+
+# Ignorar scripts de ejecución local (si no quieres subirlos)
+DTA/2025/scripts/format_usb.sh
