@@ -13,3 +13,6 @@ DTA/**/*.log
 
 # Ignorar scripts de ejecución local (si no quieres subirlos)
 DTA/**/format_usb.sh
+
+# Ignorar archivos de variables de entorno
+.env
