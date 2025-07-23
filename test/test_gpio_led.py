@@ -1,7 +1,7 @@
 import lgpio
 import time
 
-led_pins = [5]
+led_pins = [5, 6, 16, 22, 24, 25, 26]
 h = lgpio.gpiochip_open(0)
 
 for pin in led_pins:
