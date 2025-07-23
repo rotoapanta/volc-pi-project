@@ -8,7 +8,7 @@ R1 = 100_000  # 100kΩ
 R2 = 15_000   # 15kΩ
 
 # Dirección I2C y configuración
-ADS1115_ADDRESS = 0x4B
+ADS1115_ADDRESS = 0x48
 I2C_BUS = 1
 
 # Registros

@@ -2,7 +2,7 @@
 
 import os
 import shutil
-import RPi.GPIO as GPIO
+import lgpio
 
 from config import RAIN_SENSOR_PIN
 from utils.storage_utils import find_mounted_usb, has_enough_space
@@ -27,9 +27,10 @@ def startup_diagnostics(leds, logger=None):
 
     # 1. Verificación del sensor de lluvia
     try:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(RAIN_SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+        chip = lgpio.gpiochip_open(0)
+        lgpio.gpio_claim_input(chip, RAIN_SENSOR_PIN)
         print(f"[ OK ] Sensor de lluvia conectado en GPIO {RAIN_SENSOR_PIN}")
+        lgpio.gpiochip_close(chip)
     except Exception as e:
         print(f"[FAIL] Error al configurar el sensor de lluvia: {e}")
         logger.error(f"Sensor de lluvia no disponible: {e}")
@@ -53,6 +54,7 @@ def startup_diagnostics(leds, logger=None):
     else:
         print("[WARN] No se detectó memoria USB. Se usará almacenamiento interno.")
         logger.warning("No se detectó USB. Usando almacenamiento interno.")
+        leds.set("MEDIA", True)
 
     # 3. Verificación de espacio local
     local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -92,18 +94,23 @@ def startup_diagnostics(leds, logger=None):
     # 8. Estado de la batería
     battery = BatteryMonitor()
     battery_info = battery.read_all()
-    battery.close()
+    # battery.close()  # No cerrar el bus I2C aquí para evitar conflictos
 
     # Control visual con LED de batería
     leds.set_battery_status(battery_info["status"])
 
     # Mensaje en consola
-    print(f"[ OK ] Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
+    if battery_info['voltage'] is not None:
+        print(f"[ OK ] Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
+    else:
+        print(f"[WARN] Voltaje de batería inicial: ERROR ({battery_info['status']})")
 
     # Log según estado
     if battery_info["status"] == "BAJA":
         logger.warning("⚠️ Nivel de batería bajo")
-    else:
+    elif battery_info["voltage"] is not None:
         logger.info(f"🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}")
+    else:
+        logger.error(f"🔋 Error al leer voltaje de batería inicial - Estado: {battery_info['status']}")
 
     print("===================================================================\n")

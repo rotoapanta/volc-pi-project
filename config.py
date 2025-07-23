@@ -11,7 +11,7 @@ ACQUISITION_INTERVAL = 1
 RAIN_SENSOR_PIN = 17
 FLOOD_THRESHOLD = 5
 INACTIVITY_PERIOD = 30
-BOUNCE_TIME = 300  # ms
+BOUNCE_TIME = 50  # ms
 
 # Identificación técnica
 TIPO_ESTACION = "RGA"
@@ -19,7 +19,7 @@ MODEL = "rpi-5"
 SERIAL_NUMBER = "4512"
 
 # Configuración del ADS1115 (batería)
-ADS1115_ADDRESS = 0x4B
+ADS1115_ADDRESS = 0x48
 BATTERY_ADC_CHANNEL = 0
 #BATTERY_CALIBRATION_FACTOR = 1.0235  # Ajusta según tu divisor resistivo
 # Calibración avanzada de batería (Y = m*X + b)

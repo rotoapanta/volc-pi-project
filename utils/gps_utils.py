@@ -1,100 +1,71 @@
-import time
+# utils/gps_utils.py
+
+import pynmea2
+from datetime import datetime
+import os
 import subprocess
-from datetime import datetime, timezone
-from sensors.gps import GPSReader
 
-MIN_VALID_SATS = 5  # Umbral mínimo de satélites con fix válido
-
-
-def convert_to_local_time(utc_time_str):
+def parse_nmea_sentence(nmea_sentence):
     """
-    Convierte un string UTC ISO 8601 a hora local.
-    """
-    if not utc_time_str:
-        return None
-    try:
-        utc_time = datetime.strptime(utc_time_str, "%Y-%m-%dT%H:%M:%S.%fZ")
-        local_time = utc_time.replace(tzinfo=timezone.utc).astimezone(tz=None)
-        return local_time.strftime("%Y-%m-%d %H:%M:%S")
-    except Exception:
-        return None
-
-
-def parse_gga(msg):
-    """
-    Extrae latitud, longitud, altitud y número de satélites de un mensaje GGA.
+    Parsea una sentencia NMEA usando pynmea2.
+    Retorna el objeto de mensaje o None si es inválido.
     """
     try:
-        lat = msg.latitude
-        lon = msg.longitude
-        alt = float(msg.altitude)
-        sats = int(msg.num_sats)
-        fix_quality = int(msg.gps_qual)
-        return lat, lon, alt, sats, fix_quality
-    except Exception:
-        return None, None, None, 0, 0
-
-
-def wait_for_gps_fix(timeout=60):
-    """
-    Espera hasta que se reciba una posición válida y suficiente calidad de señal GPS.
-    Devuelve un diccionario con lat, lon, alt, sats, fix_time.
-    """
-    gps = GPSReader()
-    if not gps.connect():
+        return pynmea2.parse(nmea_sentence)
+    except pynmea2.ParseError:
         return None
 
-    print("🛰️ Esperando señal GPS válida...")
-
-    start = time.time()
-    result = None
-
-    try:
-        while time.time() - start < timeout:
-            msg = gps.read_sentence(expected=("GGA",))
-            if msg and msg.sentence_type == "GGA":
-                lat, lon, alt, sats, fix = parse_gga(msg)
-                if fix > 0 and sats >= MIN_VALID_SATS:
-                    fix_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
-                    result = {
-                        "latitude": lat,
-                        "longitude": lon,
-                        "altitude": alt,
-                        "satellites": sats,
-                        "fix_time_utc": fix_time
-                    }
-                    break
-            time.sleep(1)
-    finally:
-        gps.close()
-
-    return result
-
-
-def set_system_time_from_gps():
+def extract_coordinates(nmea_msg):
     """
-    Intenta establecer la hora del sistema desde el GPS.
-    Requiere permisos de superusuario.
+    Extrae latitud y longitud de una sentencia NMEA válida.
+    Retorna (lat, lon) en decimal o None si no aplica.
     """
-    gps = GPSReader()
-    if not gps.connect():
+    if hasattr(nmea_msg, 'latitude') and hasattr(nmea_msg, 'longitude'):
+        return round(nmea_msg.latitude, 6), round(nmea_msg.longitude, 6)
+    return None
+
+def extract_altitude(nmea_msg):
+    """
+    Extrae altitud (en metros) de una sentencia GGA válida.
+    """
+    if isinstance(nmea_msg, pynmea2.types.talker.GGA):
+        try:
+            return float(nmea_msg.altitude)
+        except (ValueError, TypeError):
+            return None
+    return None
+
+def extract_satellite_count(nmea_msg):
+    """
+    Retorna el número de satélites en uso si es una sentencia GGA.
+    """
+    if isinstance(nmea_msg, pynmea2.types.talker.GGA):
+        try:
+            return int(nmea_msg.num_sats)
+        except (ValueError, TypeError):
+            return None
+    return None
+
+def extract_utc_time(nmea_msg):
+    """
+    Retorna una cadena de tiempo UTC a partir de sentencias GGA o RMC.
+    """
+    if hasattr(nmea_msg, 'timestamp'):
+        now = datetime.utcnow()
+        t = nmea_msg.timestamp
+        return datetime(now.year, now.month, now.day, t.hour, t.minute, t.second)
+    return None
+
+def sync_system_clock(utc_datetime):
+    """
+    Sincroniza el reloj del sistema con el tiempo UTC proporcionado (requiere privilegios).
+    """
+    if utc_datetime is None:
         return False
-
-    print("🕓 Sincronizando hora desde GPS...")
-
     try:
-        for _ in range(15):  # intentar durante 15 segundos
-            msg = gps.read_sentence(expected=("RMC",))
-            if msg and msg.datetime:
-                gps_time = msg.datetime.replace(tzinfo=timezone.utc)
-                formatted = gps_time.strftime("%Y-%m-%d %H:%M:%S")
-                subprocess.run(["sudo", "date", "-s", formatted], check=True)
-                print(f"[OK] Hora sincronizada: {formatted}")
-                return True
-            time.sleep(1)
+        time_str = utc_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        subprocess.run(["sudo", "date", "-u", "--set", time_str], check=True)
+        return True
     except Exception as e:
-        print(f"[FAIL] No se pudo sincronizar la hora: {e}")
-    finally:
-        gps.close()
-
-    return False
+        print(f"[ERROR] No se pudo sincronizar la hora del sistema: {e}")
+        return False

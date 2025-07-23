@@ -21,10 +21,15 @@ class BatteryMonitor:
     def read_voltage(self):
         """
         Lee el voltaje de la batería y aplica factor de calibración.
+        Si ocurre un error I2C, retorna None y registra el error.
         """
-        raw_voltage = self.adc.read_battery_voltage(channel=self.channel)
-        calibrated = raw_voltage * self.slope + self.offset
-        return round(calibrated, 2)
+        try:
+            raw_voltage = self.adc.read_battery_voltage(channel=self.channel)
+            calibrated = raw_voltage * self.slope + self.offset
+            return round(calibrated, 2)
+        except Exception as e:
+            print(f"[ERROR] Error al leer voltaje de batería (I2C): {e}")
+            return None
 
     def get_status(self, voltage):
         """
@@ -40,8 +45,14 @@ class BatteryMonitor:
     def read_all(self):
         """
         Devuelve un diccionario con voltaje y estado de batería.
+        Si ocurre un error, retorna estado 'ERROR'.
         """
         voltage = self.read_voltage()
+        if voltage is None:
+            return {
+                "voltage": None,
+                "status": "ERROR"
+            }
         status = self.get_status(voltage)
         return {
             "voltage": voltage,

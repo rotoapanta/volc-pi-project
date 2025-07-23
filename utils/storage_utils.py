@@ -51,7 +51,7 @@ def get_storage_base():
         logger.info(f"✅ Usando almacenamiento USB ({usb_path}) - Espacio libre: {free_gb:.2f} GB")
         return usb_path
     else:
-        logger.warning("⚠️ No se detectó USB montada con espacio suficiente. Usando respaldo interno.")
+        # logger.warning("⚠️ No se detectó USB montada con espacio suficiente. Usando respaldo interno.")
         return INTERNAL_BACKUP_DIR
 
 def get_dta_path(date_str):

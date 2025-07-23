@@ -1,20 +1,47 @@
-import RPi.GPIO as GPIO
+# sensors/rain.py
+import lgpio
+import threading
 import time
 
 class RainSensor:
-    def __init__(self, pin, bounce_time, callback):
+    def __init__(self, pin, debounce_ms, callback, poll_interval=0.002):
         self.pin = pin
-        self.bounce_time = bounce_time
+        self.debounce_ms = debounce_ms
         self.callback = callback
-        self.last_impulse_time = time.time()
+        self.poll_interval = poll_interval  # segundos
+        self.chip = lgpio.gpiochip_open(0)
+        self._stop_event = threading.Event()
+        self._thread = None
+        self._last_state = 1  # Asumimos pull-up
+        self._last_time = 0
 
     def setup(self):
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(self.pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        GPIO.add_event_detect(self.pin, GPIO.FALLING, callback=self._debounced_callback, bouncetime=self.bounce_time)
+        try:
+            lgpio.gpio_claim_input(self.chip, self.pin)
+            self._stop_event.clear()
+            self._thread = threading.Thread(target=self._poll_loop, daemon=True)
+            self._thread.start()
+        except Exception as e:
+            raise RuntimeError(f"Error configurando sensor de lluvia: {e}")
 
-    def _debounced_callback(self, channel):
-        current_time = time.time()
-        if (current_time - self.last_impulse_time) > (self.bounce_time / 1000):
-            self.callback()
-            self.last_impulse_time = current_time
+    def _poll_loop(self):
+        while not self._stop_event.is_set():
+            state = lgpio.gpio_read(self.chip, self.pin)
+            now = time.time()
+            # Detecta flanco descendente con antirrebote
+            if self._last_state == 1 and state == 0:
+                if (now - self._last_time) * 1000 > self.debounce_ms:
+                    self._last_time = now
+                    print(f"[DEBUG] Flanco descendente válido en GPIO{self.pin} a {now}")
+                    self.callback()
+            self._last_state = state
+            time.sleep(self.poll_interval)
+
+    def cleanup(self):
+        self._stop_event.set()
+        if self._thread:
+            self._thread.join(timeout=0.1)
+        try:
+            lgpio.gpiochip_close(self.chip)
+        except Exception as e:
+            print(f"[WARN] Error al limpiar sensor de lluvia: {e}")

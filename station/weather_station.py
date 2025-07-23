@@ -3,11 +3,9 @@ import time
 import json
 from datetime import datetime, timedelta
 
-import RPi.GPIO as GPIO
-
 from config import *
 from sensors.rain import RainSensor
-from utils.leds import LEDManager
+from utils.leds_utils import LEDManager
 from utils.storage_utils import get_dta_path
 from utils.battery_utils import BatteryMonitor
 
@@ -30,6 +28,7 @@ class WeatherStation:
         self.rainfall_count += 1
         self.rainfall_accumulated += 0.25
         timestamp = self.get_timestamp()
+        print(f"[DEBUG] Pulso pluviómetro detectado en {timestamp} (tip #{self.rainfall_count})")
         self.logger.info(f"Impulso detectado: {self.rainfall_count} tips, {self.rainfall_accumulated:.2f} mm acumulados a las {timestamp}")
         self.leds.blink("TX")
 
@@ -109,7 +108,7 @@ class WeatherStation:
             self.last_interval_end_str = current_interval_end_str
 
     def cleanup(self):
-        GPIO.cleanup()
+        self.rain_sensor.cleanup()
         self.logger.info("GPIO limpio, estación detenida.")
 
     def run(self):

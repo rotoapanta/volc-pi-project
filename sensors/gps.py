@@ -1,41 +1,39 @@
+# sensors/gps.py
+
 import serial
-import pynmea2
-from config import GPS_PORT, GPS_BAUDRATE, GPS_TIMEOUT
+import threading
 
 class GPSReader:
-    def __init__(self, port=GPS_PORT, baudrate=GPS_BAUDRATE, timeout=GPS_TIMEOUT):
+    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=1.0):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout
         self.serial = None
+        self.lock = threading.Lock()
+        self._connect()
 
-    def connect(self):
+    def _connect(self):
         try:
             self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
-            return True
-        except serial.SerialException as e:
-            print(f"❌ No se pudo abrir el puerto GPS ({self.port}): {e}")
-            return False
+        except Exception as e:
+            print(f"[ERROR] No se pudo abrir el puerto {self.port}: {e}")
+            self.serial = None
 
-    def read_line(self):
-        if self.serial and self.serial.in_waiting:
-            try:
-                return self.serial.readline().decode('ascii', errors='replace').strip()
-            except Exception:
-                return None
-        return None
-
-    def read_sentence(self, expected=("GGA", "RMC")):
-        line = self.read_line()
-        if not line:
+    def read_sentence(self):
+        """
+        Lee una línea del GPS (formato NMEA). Retorna una cadena cruda o None si hay error.
+        """
+        if not self.serial or not self.serial.is_open:
+            self._connect()
             return None
 
         try:
-            msg = pynmea2.parse(line)
-            if msg.sentence_type in expected:
-                return msg
-        except pynmea2.ParseError:
-            pass
+            with self.lock:
+                line = self.serial.readline().decode('ascii', errors='ignore').strip()
+            if line.startswith("$"):
+                return line
+        except Exception as e:
+            print(f"[ERROR] al leer desde GPS: {e}")
         return None
 
     def close(self):

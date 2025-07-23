@@ -3,25 +3,28 @@
 from config import STATION_NAME, IDENTIFIER, ACQUISITION_INTERVAL
 from station.weather_station import WeatherStation
 from diagnostics.startup import startup_diagnostics
-from utils.leds import LEDManager
+from utils.leds_utils import LEDManager
 from utils.log_utils import setup_logger
 from utils.power_guard import PowerGuard
+from managers.gps_manager import GPSManager  # ← IMPORTANTE
+from utils.usb_monitor import start_usb_monitor
 
 if __name__ == "__main__":
-    # Configura el logger principal
     logger = setup_logger()
-
-    # Inicializa el controlador de LEDs
     leds = LEDManager()
 
-    # Ejecuta diagnóstico inicial del sistema
     startup_diagnostics(leds, logger=logger)
+    # Inicia monitoreo dinámico de USB para el LED MEDIA
+    start_usb_monitor(leds, logger=logger)
 
-    # Inicia el monitoreo de batería en segundo plano
+    # Inicia monitoreo continuo de batería
     power_guard = PowerGuard(leds, logger)
     power_guard.start()
 
-    # Inicializa y ejecuta la estación meteorológica
+    # Inicia monitoreo GPS (en hilo)
+    gps_manager = GPSManager(leds=leds, logger=logger)
+    gps_manager.start()
+
     station = WeatherStation(
         station_name=STATION_NAME,
         identifier=IDENTIFIER,
@@ -29,4 +32,8 @@ if __name__ == "__main__":
         leds=leds,
         logger=logger
     )
-    station.run()
+
+    try:
+        station.run()
+    finally:
+        gps_manager.stop()  # ← Asegura cerrar hilo GPS
