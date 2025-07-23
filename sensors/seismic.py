@@ -1,9 +1,20 @@
 import serial
 import threading
+import glob
+import os
 
 class SeismicSensor:
-    def __init__(self, port='/dev/ttyUSB0', baudrate=9600, callback=None):
-        self.port = port
+    def __init__(self, port=None, baudrate=9600, callback=None):
+        # Si no se especifica puerto, busca automáticamente en /dev/serial/by-id/
+        if port is None:
+            by_id = glob.glob('/dev/serial/by-id/*')
+            if by_id:
+                self.port = by_id[0]
+                print(f"[INFO] Usando puerto sísmico: {self.port}")
+            else:
+                raise RuntimeError("No se encontró ningún dispositivo USB-Serial en /dev/serial/by-id/")
+        else:
+            self.port = port
         self.baudrate = baudrate
         self.callback = callback  # función a llamar con cada dato recibido
         self._stop_event = threading.Event()

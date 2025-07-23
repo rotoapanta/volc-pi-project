@@ -8,6 +8,7 @@ from utils.log_utils import setup_logger
 from utils.power_guard import PowerGuard
 from managers.gps_manager import GPSManager  # ← IMPORTANTE
 from utils.usb_monitor import start_usb_monitor
+from sensors.seismic import SeismicSensor
 
 if __name__ == "__main__":
     logger = setup_logger()
@@ -33,7 +34,18 @@ if __name__ == "__main__":
         logger=logger
     )
 
+    # Inicia el sensor sísmico
+    def seismic_callback(data):
+        logger.info(f"[SEISMIC] {data}")
+    from config import SEISMIC_PORT, SEISMIC_BAUDRATE
+    seismic_sensor = SeismicSensor(port=SEISMIC_PORT, baudrate=SEISMIC_BAUDRATE, callback=seismic_callback)
+    try:
+        seismic_sensor.start()
+    except Exception as e:
+        logger.warning(f"No se pudo iniciar el sensor sísmico: {e}")
+
     try:
         station.run()
     finally:
         gps_manager.stop()  # ← Asegura cerrar hilo GPS
+        seismic_sensor.stop()

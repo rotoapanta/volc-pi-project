@@ -41,5 +41,9 @@ GPS_PORT = "/dev/ttyUSB0"
 GPS_BAUDRATE = 9600
 GPS_TIMEOUT = 1.0
 
+# Configuración del sensor sísmico
+SEISMIC_PORT = "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
+SEISMIC_BAUDRATE = 9600
+
 GPS_MIN_SATELLITES = 5        # Para considerar señal válida
 GPS_REQUIRED_FIX_QUALITY = 1  # 1 = GPS fix, 2 = DGPS fix
