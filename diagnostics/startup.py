@@ -67,9 +67,45 @@ def startup_diagnostics(leds, logger=None):
         logger.error(f"No se pudo verificar espacio local: {e}")
         leds.set("ERROR", True)
 
-    # 4. Estado del GPS (placeholder)
-    print("[....] GPS: módulo no implementado aún")
-    logger.debug("Estado GPS: no implementado")
+    # 4. Estado del GPS
+    try:
+        from config import GPS_PORT, GPS_BAUDRATE, GPS_MIN_SATELLITES
+        from managers.gps_manager import GPSManager
+        gps_diag = GPSManager()
+        # Intentar leer datos del GPS durante 2 segundos
+        import time as _time
+        gps_diag.gps.open()  # Asegura apertura
+        start = _time.time()
+        fix = False
+        sats = 0
+        lat = lon = alt = None
+        while _time.time() - start < 2:
+            sentence = gps_diag.gps.read_sentence()
+            if not sentence:
+                continue
+            from utils.gps_utils import parse_nmea_sentence, extract_coordinates, extract_altitude, extract_satellite_count
+            nmea_msg = parse_nmea_sentence(sentence)
+            if not nmea_msg:
+                continue
+            coords = extract_coordinates(nmea_msg)
+            alt_ = extract_altitude(nmea_msg)
+            sats_ = extract_satellite_count(nmea_msg)
+            if coords:
+                lat, lon = coords
+            if alt_ is not None:
+                alt = alt_
+            if sats_ is not None:
+                sats = sats_
+            if sats >= GPS_MIN_SATELLITES and lat and lon:
+                fix = True
+                break
+        gps_diag.gps.close()
+        fix_str = "FIX" if fix else "NO FIX"
+        print(f"[ OK ] GPS activo en {GPS_PORT} @ {GPS_BAUDRATE} bps | Satélites: {sats} | Lat: {lat} | Lon: {lon} | Alt: {alt} | Estado: {fix_str}")
+        logger.info(f"GPS activo en {GPS_PORT} @ {GPS_BAUDRATE} bps | Satélites: {sats} | Lat: {lat} | Lon: {lon} | Alt: {alt} | Estado: {fix_str}")
+    except Exception:
+        print("[....] GPS: módulo no implementado aún")
+        logger.debug("Estado GPS: no implementado")
 
     # 5. Estado de LoRa (placeholder)
     print("[....] LoRa: módulo no implementado aún")

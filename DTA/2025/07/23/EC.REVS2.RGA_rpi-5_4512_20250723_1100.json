@@ -38,6 +38,30 @@
             "TIEMPO": "11:06:00",
             "NIVEL": 0.0,
             "BATERIA": 12.46
+        },
+        {
+            "FECHA": "2025-07-23",
+            "TIEMPO": "11:33:00",
+            "NIVEL": 0.0,
+            "BATERIA": null
+        },
+        {
+            "FECHA": "2025-07-23",
+            "TIEMPO": "11:34:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.46
+        },
+        {
+            "FECHA": "2025-07-23",
+            "TIEMPO": "11:36:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.46
+        },
+        {
+            "FECHA": "2025-07-23",
+            "TIEMPO": "11:37:00",
+            "NIVEL": 0.0,
+            "BATERIA": 12.46
         }
     ]
 }

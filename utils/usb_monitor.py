@@ -16,7 +16,7 @@ def monitor_usb(leds, interval=2, logger=None):
             leds.set("MEDIA", not new_usb_present)
             if logger:
                 if new_usb_present:
-                    logger.info("Memoria USB conectada: LED MEDIA apagado")
+                    logger.info("Memoria USB conectada. Cambiando a almacenamiento externo.")
                 else:
                     logger.warning("Memoria USB desconectada. Cambiando a almacenamiento interno.")
             else:
