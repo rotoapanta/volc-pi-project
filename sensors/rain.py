@@ -32,7 +32,6 @@ class RainSensor:
             if self._last_state == 1 and state == 0:
                 if (now - self._last_time) * 1000 > self.debounce_ms:
                     self._last_time = now
-                    print(f"[DEBUG] Flanco descendente válido en GPIO{self.pin} a {now}")
                     self.callback()
             self._last_state = state
             time.sleep(self.poll_interval)

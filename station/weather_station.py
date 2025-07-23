@@ -28,7 +28,6 @@ class WeatherStation:
         self.rainfall_count += 1
         self.rainfall_accumulated += 0.25
         timestamp = self.get_timestamp()
-        print(f"[DEBUG] Pulso pluviómetro detectado en {timestamp} (tip #{self.rainfall_count})")
         self.logger.info(f"Impulso detectado: {self.rainfall_count} tips, {self.rainfall_accumulated:.2f} mm acumulados a las {timestamp}")
         self.leds.blink("TX")
 
