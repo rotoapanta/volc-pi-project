@@ -1,0 +1,95 @@
+# Rain Gauge Project
+
+Sistema profesional de monitoreo de lluvia y telemetría ambiental basado en Raspberry Pi 5
+
+---
+
+## Descripción
+
+Este proyecto implementa una estación meteorológica robusta y autónoma para la medición de precipitación (pluviómetro tipo balancín), monitoreo de batería, almacenamiento seguro de datos y telemetría GPS. El sistema está diseñado para operar en campo, con almacenamiento redundante (USB y respaldo interno), indicadores LED de estado y lógica tolerante a fallos.
+
+## Características principales
+
+- **Pluviómetro tipo balancín**: Registro preciso de cada "tip" (pulso de lluvia) con antirrebote por hardware y software.
+- **Medición de batería**: Lectura de voltaje mediante ADC ADS1115 y divisor resistivo, con umbrales configurables y lógica de apagado seguro.
+- **Almacenamiento dual**: Guarda datos en memoria USB si está presente, o en almacenamiento interno si no.
+- **Indicadores LED**: Estado de red, GPS, batería, almacenamiento, transmisión, error y heartbeat.
+- **GPS**: Adquisición de posición, altitud y sincronización horaria con FIX robusto.
+- **Robustez**: Manejo de errores I2C, monitoreo dinámico de USB, lógica de histeresis para FIX GPS, logs detallados.
+- **Modularidad**: Código organizado en módulos para fácil mantenimiento y extensión.
+
+## Requisitos
+
+### Hardware
+- Raspberry Pi 5 (recomendado)
+- Pluviómetro tipo balancín (contacto seco)
+- Módulo ADC ADS1115
+- Módulo GPS compatible UART
+- LEDs y resistencias para indicadores (GPIO: 5, 6, 16, 22, 24, 25, 26)
+- Memoria USB (opcional, para almacenamiento externo)
+
+### Software
+- Raspberry Pi OS Bookworm o superior
+- Python 3.9+
+- Paquetes: `lgpio`, `smbus2`, `gpiozero`, `shutil`, `threading`, `logging`
+- Acceso a I2C y permisos de GPIO habilitados
+
+## Instalación
+
+1. Clona el repositorio:
+   ```bash
+   git clone https://github.com/rotoapanta/rain-gauge-project.git
+   cd rain-gauge-project
+   ```
+2. Instala dependencias:
+   ```bash
+   sudo apt update
+   sudo apt install python3-lgpio python3-smbus2 python3-pip
+   pip3 install gpiozero
+   ```
+3. Habilita I2C y GPIO en tu Raspberry Pi (`raspi-config`)
+4. Conecta el hardware según el diagrama de pines en la documentación.
+
+## Uso
+
+1. Ejecuta el sistema principal:
+   ```bash
+   python3 main.py
+   ```
+2. Los datos se guardarán automáticamente en la memoria USB si está presente, o en la SD interna si no.
+3. Los LEDs indicarán el estado de cada subsistema (ver tabla de pines abajo).
+4. El log detallado se encuentra en `logs/rain_monitor.log`.
+
+## Estructura del proyecto
+
+```
+├── main.py                  # Punto de entrada principal
+├── config.py                # Configuración general y de hardware
+├── station/weather_station.py
+├── sensors/                 # Módulos de sensores (rain, gps, ads1115, etc.)
+├── utils/                   # Utilidades (leds, almacenamiento, batería, USB, logs)
+├── managers/                # Lógica de alto nivel (GPS, power guard)
+├── logs/                    # Logs del sistema
+├── DTA/                     # Datos de lluvia almacenados
+└── test/                    # Scripts de prueba de hardware
+```
+
+## Pines de LEDs
+
+| Función   | GPIO |
+|-----------|------|
+| HB        | 5    |
+| VOLTAGE   | 6    |
+| NET       | 16   |
+| TX        | 22   |
+| GPS       | 24   |
+| MEDIA     | 25   |
+| ERROR     | 26   |
+
+## Créditos
+
+Desarrollado por [rotoapanta](https://github.com/rotoapanta) y colaboradores.
+
+## Licencia
+
+Este proyecto se distribuye bajo la licencia MIT. Consulta el archivo LICENSE para más detalles.
