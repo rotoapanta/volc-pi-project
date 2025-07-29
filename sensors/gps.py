@@ -2,6 +2,7 @@
 
 import serial
 import threading
+from utils.print_utils import print_colored
 
 class GPSReader:
     def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=1.0):
@@ -16,7 +17,7 @@ class GPSReader:
         try:
             self.serial = serial.Serial(self.port, self.baudrate, timeout=self.timeout)
         except Exception as e:
-            print(f"[ERROR] No se pudo abrir el puerto {self.port}: {e}")
+            print_colored(f"[ERROR] No se pudo abrir el puerto {self.port}: {e}")
             self.serial = None
 
     def read_sentence(self):
@@ -33,7 +34,7 @@ class GPSReader:
             if line.startswith("$"):
                 return line
         except Exception as e:
-            print(f"[ERROR] al leer desde GPS: {e}")
+            print_colored(f"[ERROR] al leer desde GPS: {e}")
         return None
 
     def close(self):
