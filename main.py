@@ -35,8 +35,12 @@ if __name__ == "__main__":
     )
 
     # Inicia el sensor sísmico
+    from utils.seismic_utils import SeismicDataAccumulator
+    from config import SEISMIC_STORAGE_INTERVAL_MINUTES
+    seismic_acc = SeismicDataAccumulator(acquisition_interval=SEISMIC_STORAGE_INTERVAL_MINUTES)
     def seismic_callback(data):
         logger.info(f"[SEISMIC] {data}")
+        seismic_acc.accumulate_and_save(data)
     from config import SEISMIC_PORT, SEISMIC_BAUDRATE
     seismic_sensor = SeismicSensor(port=SEISMIC_PORT, baudrate=SEISMIC_BAUDRATE, callback=seismic_callback)
     try:

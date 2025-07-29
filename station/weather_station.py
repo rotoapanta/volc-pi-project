@@ -3,7 +3,7 @@ import time
 import json
 from datetime import datetime, timedelta
 
-from config import *
+from config import PLUVI_STATION_TYPE, PLUVI_MODEL, PLUVI_SERIAL_NUMBER, RAIN_SENSOR_PIN, BOUNCE_TIME
 from sensors.rain import RainSensor
 from utils.leds_utils import LEDManager
 from utils.storage_utils import get_dta_path
@@ -60,7 +60,7 @@ class WeatherStation:
             hour_str = time_str[:2] + "00"
             directory = get_dta_path(date_str)
             file_date = date_str.replace("-", "")
-            filename = os.path.join(directory, f"EC.{self.station_name}.{TIPO_ESTACION}_{MODEL}_{SERIAL_NUMBER}_{file_date}_{hour_str}.json")
+            filename = os.path.join(directory, f"EC.{self.station_name}.{PLUVI_STATION_TYPE}_{PLUVI_MODEL}_{PLUVI_SERIAL_NUMBER}_{file_date}_{hour_str}.json")
 
             if os.path.exists(filename):
                 with open(filename, 'r') as file:

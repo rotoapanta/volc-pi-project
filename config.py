@@ -13,10 +13,24 @@ FLOOD_THRESHOLD = 5
 INACTIVITY_PERIOD = 30
 BOUNCE_TIME = 50  # ms
 
-# Identificación técnica
-TIPO_ESTACION = "RGA"
-MODEL = "rpi-5"
-SERIAL_NUMBER = "4512"
+# Configuración de GPS (debe ir antes de SENSORS)
+GPS_PORT = "/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"
+GPS_BAUDRATE = 9600
+GPS_TIMEOUT = 1.0
+
+# Technical identification (Pluviometer station)
+PLUVI_STATION_TYPE = "RGA"
+PLUVI_MODEL = "rpi-5"
+PLUVI_SERIAL_NUMBER = "4512"
+
+# Technical identification (Seismic station)
+SEISMIC_STATION_TYPE = "SIS"
+SEISMIC_MODEL = "rpi-5"
+SEISMIC_SERIAL_NUMBER = "4512-SIS"
+SEISMIC_PORT = "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
+SEISMIC_BAUDRATE = 9600
+SEISMIC_STORAGE_INTERVAL_MINUTES = 1  # Intervalo de almacenamiento para sísmico (minutos)
+
 
 # Configuración del ADS1115 (batería)
 ADS1115_ADDRESS = 0x48
@@ -34,16 +48,6 @@ BATTERY_CRITICAL_VOLTAGE = 9.5   # Desde aquí se considera CRÍTICA
 BATTERY_SHUTDOWN_THRESHOLD = 9.3  # Apagar si baja de este valor
 BATTERY_SHUTDOWN_CYCLES = 3       # Número de ciclos consecutivos para apagar
 BATTERY_CHECK_INTERVAL = 60       # Intervalo de verificación (segundos)
-
-
-# Configuración de GPS
-GPS_PORT = "/dev/serial/by-id/usb-Silicon_Labs_CP2102_USB_to_UART_Bridge_Controller_0001-if00-port0"
-GPS_BAUDRATE = 9600
-GPS_TIMEOUT = 1.0
-
-# Configuración del sensor sísmico
-SEISMIC_PORT = "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
-SEISMIC_BAUDRATE = 9600
 
 GPS_MIN_SATELLITES = 5        # Para considerar señal válida
 GPS_REQUIRED_FIX_QUALITY = 1  # 1 = GPS fix, 2 = DGPS fix
