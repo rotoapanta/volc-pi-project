@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from config import STATION_NAME, IDENTIFIER, SEISMIC_STATION_TYPE, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER
 from utils.storage_utils import get_dta_path
 
-def parse_seismic_message(msg, latitud=None, longitud=None, altura=None):
+def parse_seismic_message(msg, fecha, tiempo, latitud=None, longitud=None, altura=None):
     """
     Parsea y explica un mensaje sísmico tipo:
     [SEISMIC] 007 +0013 +0010 +0050 +3277 c+1379
@@ -30,33 +30,29 @@ def parse_seismic_message(msg, latitud=None, longitud=None, altura=None):
     except Exception:
         return None
     result = {
-        "estacion": f"{st_num:03d}",
-        "pasa_banda": f"{pasa_banda_raw:04d}",
-        "pasa_bajo": f"{pasa_bajo_raw:04d}",
-        "pasa_alto": f"{pasa_alto_raw:04d}",
-        "bateria": f"{bateria_raw}"
+        "FECHA": fecha,
+        "TIEMPO": tiempo,
+        "PASA_BANDA": f"{pasa_banda_raw:04d}",
+        "PASA_BAJO": f"{pasa_bajo_raw:04d}",
+        "PASA_ALTO": f"{pasa_alto_raw:04d}"
     }
     if latitud is not None:
-        result["latitud"] = latitud
+        result["LATITUD"] = latitud
     if longitud is not None:
-        result["longitud"] = longitud
+        result["LONGITUD"] = longitud
     if altura is not None:
-        result["altura"] = altura
+        result["ALTURA"] = altura
     return result
 
 def save_seismic_data(msg, fecha, tiempo, latitud=None, longitud=None, altura=None):
     """
     Guarda los datos sísmicos en formato JSON igual que los datos de pluviometría.
     """
-    datos = parse_seismic_message(msg, latitud=latitud, longitud=longitud, altura=altura)
+    datos = parse_seismic_message(msg, fecha, tiempo, latitud=latitud, longitud=longitud, altura=altura)
     if not datos:
         return False
     # Estructura de lectura
-    lectura = {
-        "FECHA": fecha,
-        "TIEMPO": tiempo,
-        "DATOS": datos
-    }
+    lectura = datos
     # Ruta y nombre de archivo
     dta_path = get_dta_path(fecha)
     file_date = fecha.replace("-", "")

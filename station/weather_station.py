@@ -43,15 +43,30 @@ class WeatherStation:
         return current_end.strftime("%H:%M:00")
 
     def log_rainfall(self, date_str, interval_end_str, rainfall_mm):
-        if interval_end_str not in self.data_accumulator:
-            voltage = self.battery_monitor.read_all()["voltage"]
-            self.data_accumulator[interval_end_str] = {
-                "FECHA": date_str,
-                "TIEMPO": interval_end_str,
-                "NIVEL": rainfall_mm,
-                "BATERIA": voltage
-            }
-            self.save_accumulated_data()
+        import json
+        def get_last_gps():
+            try:
+                with open("last_gps.json", "r") as f:
+                    data = json.load(f)
+                    return data.get("lat"), data.get("lon"), data.get("alt")
+            except Exception:
+                return None, None, None
+        lat, lon, alt = get_last_gps()
+        if lat is not None and lon is not None and alt is not None:
+            if interval_end_str not in self.data_accumulator:
+                voltage = self.battery_monitor.read_all()["voltage"]
+                self.data_accumulator[interval_end_str] = {
+                    "FECHA": date_str,
+                    "TIEMPO": interval_end_str,
+                    "NIVEL": rainfall_mm,
+                    "BATERIA": voltage,
+                    "latitud": lat,
+                    "longitud": lon,
+                    "altura": alt
+                }
+                self.save_accumulated_data()
+        else:
+            self.logger.warning("No se guarda dato de lluvia: aún no hay fix de GPS.")
 
     def save_accumulated_data(self):
         for interval_end_str, entry in self.data_accumulator.items():
@@ -85,8 +100,9 @@ class WeatherStation:
         self.data_accumulator = {}
 
     def create_empty_structure(self):
+        from config import PLUVI_STATION_TYPE
         return {
-            "TIPO": "PLUVIOMETRIA",
+            "TIPO": PLUVI_STATION_TYPE,
             "NOMBRE": self.station_name,
             "IDENTIFICADOR": self.identifier,
             "LECTURAS": []
