@@ -76,6 +76,15 @@ class GPSManager:
                             self.logger.info(f"⏱️ Hora sincronizada con GPS: {utc_time}")
                         self.has_synced_time = True
 
+                # Guardar la última posición GPS válida en un archivo
+                try:
+                    import json
+                    with open("last_gps.json", "w") as f:
+                        json.dump({"lat": lat, "lon": lon, "alt": alt}, f)
+                except Exception as e:
+                    if self.logger:
+                        self.logger.error(f"Error guardando last_gps.json: {e}")
+
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 if self.logger:
                     self.logger.info(f"📡 FIX GPS con {sats} satélites. Pos: {lat:.5f}, {lon:.5f}, Alt: {alt:.1f} m")

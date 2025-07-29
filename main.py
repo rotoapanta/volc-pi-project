@@ -38,9 +38,28 @@ if __name__ == "__main__":
     from utils.seismic_utils import SeismicDataAccumulator
     from config import SEISMIC_STORAGE_INTERVAL_MINUTES
     seismic_acc = SeismicDataAccumulator(acquisition_interval=SEISMIC_STORAGE_INTERVAL_MINUTES)
+    import json
+    def get_last_gps():
+        try:
+            with open("last_gps.json", "r") as f:
+                data = json.load(f)
+                return data.get("lat"), data.get("lon"), data.get("alt")
+        except Exception:
+            return None, None, None
+
     def seismic_callback(data):
         logger.info(f"[SEISMIC] {data}")
-        seismic_acc.accumulate_and_save(data)
+        lat, lon, alt = get_last_gps()
+        # Solo guardar si hay posición válida de GPS
+        if lat is not None and lon is not None and alt is not None:
+            seismic_acc.accumulate_and_save(
+                data,
+                latitud=lat,
+                longitud=lon,
+                altura=alt
+            )
+        else:
+            logger.warning("No se guarda dato sísmico: aún no hay fix de GPS.")
     from config import SEISMIC_PORT, SEISMIC_BAUDRATE
     seismic_sensor = SeismicSensor(port=SEISMIC_PORT, baudrate=SEISMIC_BAUDRATE, callback=seismic_callback)
     try:
@@ -48,6 +67,7 @@ if __name__ == "__main__":
     except Exception as e:
         logger.warning(f"No se pudo iniciar el sensor sísmico: {e}")
 
+    
     try:
         station.run()
     finally:

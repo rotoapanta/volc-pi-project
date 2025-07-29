@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from config import STATION_NAME, IDENTIFIER, SEISMIC_STATION_TYPE, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER
 from utils.storage_utils import get_dta_path
 
-def parse_seismic_message(msg):
+def parse_seismic_message(msg, latitud=None, longitud=None, altura=None):
     """
     Parsea y explica un mensaje sísmico tipo:
     [SEISMIC] 007 +0013 +0010 +0050 +3277 c+1379
@@ -29,19 +29,26 @@ def parse_seismic_message(msg):
         bateria_raw = int(bateria)
     except Exception:
         return None
-    return {
+    result = {
         "estacion": f"{st_num:03d}",
         "pasa_banda": f"{pasa_banda_raw:04d}",
         "pasa_bajo": f"{pasa_bajo_raw:04d}",
         "pasa_alto": f"{pasa_alto_raw:04d}",
         "bateria": f"{bateria_raw}"
     }
+    if latitud is not None:
+        result["latitud"] = latitud
+    if longitud is not None:
+        result["longitud"] = longitud
+    if altura is not None:
+        result["altura"] = altura
+    return result
 
-def save_seismic_data(msg, fecha, tiempo):
+def save_seismic_data(msg, fecha, tiempo, latitud=None, longitud=None, altura=None):
     """
     Guarda los datos sísmicos en formato JSON igual que los datos de pluviometría.
     """
-    datos = parse_seismic_message(msg)
+    datos = parse_seismic_message(msg, latitud=latitud, longitud=longitud, altura=altura)
     if not datos:
         return False
     # Estructura de lectura
@@ -94,9 +101,9 @@ class SeismicDataAccumulator:
         current_end = now.replace(minute=minutes, second=0, microsecond=0)
         return current_end.strftime("%H:%M:00"), now.strftime("%Y-%m-%d")
 
-    def accumulate_and_save(self, msg):
+    def accumulate_and_save(self, msg, latitud=None, longitud=None, altura=None):
         tiempo, fecha = self.get_current_interval_end()
         # Solo guardar una vez por intervalo
         if self.last_saved_time != (fecha, tiempo):
-            save_seismic_data(msg, fecha, tiempo)
+            save_seismic_data(msg, fecha, tiempo, latitud=latitud, longitud=longitud, altura=altura)
             self.last_saved_time = (fecha, tiempo)
