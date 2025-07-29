@@ -1,6 +1,7 @@
 import time
 import threading
 from utils.storage_utils import find_mounted_usb
+from utils.print_utils import print_colored
 
 def monitor_usb(leds, interval=2, logger=None):
     """
@@ -21,9 +22,9 @@ def monitor_usb(leds, interval=2, logger=None):
                     logger.warning("Memoria USB desconectada. Cambiando a almacenamiento interno.")
             else:
                 if new_usb_present:
-                    print("[INFO] Memoria USB conectada: LED MEDIA apagado")
+                    print_colored("[INFO] Memoria USB conectada: LED MEDIA apagado")
                 else:
-                    print("[INFO] Memoria USB desconectada: LED MEDIA encendido")
+                    print_colored("[INFO] Memoria USB desconectada: LED MEDIA encendido")
             usb_present = new_usb_present
 
 def start_usb_monitor(leds, interval=2, logger=None):

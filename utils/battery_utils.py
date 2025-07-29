@@ -28,7 +28,8 @@ class BatteryMonitor:
             calibrated = raw_voltage * self.slope + self.offset
             return round(calibrated, 2)
         except Exception as e:
-            print(f"[ERROR] Error al leer voltaje de batería (I2C): {e}")
+            from utils.print_utils import print_colored
+            print_colored(f"[ERROR] Error al leer voltaje de batería (I2C): {e}")
             return None
 
     def get_status(self, voltage):

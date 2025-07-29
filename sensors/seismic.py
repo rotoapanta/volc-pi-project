@@ -2,6 +2,7 @@ import serial
 import threading
 import glob
 import os
+from utils.print_utils import print_colored
 
 class SeismicSensor:
     def __init__(self, port=None, baudrate=9600, callback=None):
@@ -10,7 +11,7 @@ class SeismicSensor:
             by_id = glob.glob('/dev/serial/by-id/*')
             if by_id:
                 self.port = by_id[0]
-                print(f"[INFO] Usando puerto sísmico: {self.port}")
+                print_colored(f"[INFO] Usando puerto sísmico: {self.port}")
             else:
                 raise RuntimeError("No se encontró ningún dispositivo USB-Serial en /dev/serial/by-id/")
         else:
@@ -34,7 +35,7 @@ class SeismicSensor:
                 if line and self.callback:
                     self.callback(line)
             except Exception as e:
-                print(f"[WARN] Error leyendo sensor sísmico: {e}")
+                print_colored(f"[WARN] Error leyendo sensor sísmico: {e}")
 
     def stop(self):
         self._stop_event.set()

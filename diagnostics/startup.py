@@ -4,6 +4,8 @@ import os
 import shutil
 import lgpio
 
+from utils.print_utils import print_colored
+
 from config import RAIN_SENSOR_PIN
 from utils.storage_utils import find_mounted_usb, has_enough_space
 from sensors.network import is_connected, network_status_lines
@@ -29,10 +31,10 @@ def startup_diagnostics(leds, logger=None):
     try:
         chip = lgpio.gpiochip_open(0)
         lgpio.gpio_claim_input(chip, RAIN_SENSOR_PIN)
-        print(f"[ OK ] Sensor de lluvia conectado en GPIO {RAIN_SENSOR_PIN}")
+        print_colored(f"[ OK ] Sensor de lluvia conectado en GPIO {RAIN_SENSOR_PIN}")
         lgpio.gpiochip_close(chip)
     except Exception as e:
-        print(f"[FAIL] Error al configurar el sensor de lluvia: {e}")
+        print_colored(f"[FAIL] Error al configurar el sensor de lluvia: {e}")
         logger.error(f"Sensor de lluvia no disponible: {e}")
         leds.set("ERROR", True)
 
@@ -41,10 +43,10 @@ def startup_diagnostics(leds, logger=None):
     if usb:
         try:
             free_mb = shutil.disk_usage(usb).free // (1024 ** 2)
-            print(f"[ OK ] Memoria USB detectada en {usb} - Espacio libre: {free_mb} MB")
+            print_colored(f"[ OK ] Memoria USB detectada en {usb} - Espacio libre: {free_mb} MB")
             logger.info(f"USB detectada en {usb} - Espacio libre: {free_mb} MB")
             if free_mb < MIN_FREE_MB:
-                print(f"[WARN] Espacio bajo en USB (<{MIN_FREE_MB} MB)")
+                print_colored(f"[WARN] Espacio bajo en USB (<{MIN_FREE_MB} MB)")
                 logger.warning("Espacio bajo en USB")
                 leds.set("ERROR", True)
         except Exception as e:
@@ -60,7 +62,7 @@ def startup_diagnostics(leds, logger=None):
     local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     try:
         local_free_mb = shutil.disk_usage(local_path).free // (1024 ** 2)
-        print(f"[ OK ] Espacio en respaldo local: {local_free_mb} MB")
+        print_colored(f"[ OK ] Espacio en respaldo local: {local_free_mb} MB")
         logger.info(f"Espacio en respaldo local: {local_free_mb} MB")
     except Exception as e:
         print(f"[FAIL] No se pudo verificar espacio local: {e}")
@@ -70,7 +72,7 @@ def startup_diagnostics(leds, logger=None):
     # 4. Estado del GPS
     try:
         from config import GPS_PORT, GPS_BAUDRATE
-        print(f"[ OK ] GPS configurado en {GPS_PORT} @ {GPS_BAUDRATE} bps")
+        print_colored(f"[ OK ] GPS configurado en {GPS_PORT} @ {GPS_BAUDRATE} bps")
         logger.info(f"GPS configurado en {GPS_PORT} @ {GPS_BAUDRATE} bps")
     except Exception:
         print("[....] GPS: módulo no implementado aún")
@@ -82,7 +84,7 @@ def startup_diagnostics(leds, logger=None):
 
     # 6. Estado de red
     for line in network_status_lines():
-        print(line)
+        print_colored(line)
         if "WARN" in line:
             logger.warning(line.replace("[WARN]", "").strip())
         elif "OK" in line:
@@ -106,7 +108,7 @@ def startup_diagnostics(leds, logger=None):
 
     # Mensaje en consola
     if battery_info['voltage'] is not None:
-        print(f"[ OK ] Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
+        print_colored(f"[ OK ] Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
     else:
         print(f"[WARN] Voltaje de batería inicial: ERROR ({battery_info['status']})")
 
