@@ -73,7 +73,7 @@ class GPSManager:
                 if not self.has_synced_time and utc_time:
                     if sync_system_clock(utc_time):
                         if self.logger:
-                            self.logger.info(f"⏱️ Hora sincronizada con GPS: {utc_time}")
+                            self.logger.info(f"[GPS] TIME_SYNC: {utc_time}")
                         self.has_synced_time = True
 
                 # Guardar la última posición GPS válida en un archivo
@@ -87,7 +87,7 @@ class GPSManager:
 
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 if self.logger:
-                    self.logger.info(f"📡 FIX GPS con {sats} satélites. Pos: {lat:.5f}, {lon:.5f}, Alt: {alt:.1f} m")
+                    self.logger.info(f"[GPS] FIX: SATS={sats} POS=({lat:.5f}, {lon:.5f}) ALT={alt:.1f}m")
                 if self.gps_status != "FIX":
                     self.gps_status = "FIX"
                     if self.leds:
@@ -95,7 +95,7 @@ class GPSManager:
             else:
                 if self.gps_status != "SEARCHING" and (now - last_fix_time) > fix_timeout:
                     if self.logger:
-                        self.logger.info("🔍 Buscando FIX GPS...")
+                        self.logger.info("[GPS] SEARCHING FOR FIX...")
                     self.gps_status = "SEARCHING"
                     if self.leds:
                         self.leds.set_gps_status("SEARCHING")
@@ -103,9 +103,9 @@ class GPSManager:
             time.sleep(0.5)
 
         if self.leds:
-            self.leds.set_gps_status("NO_FIX")
+            self.leds.set_gps_status("[GPS] NO_FIX")
         if self.logger:
-            self.logger.info("🛰️ GPS detenido.")
+            self.logger.info("[GPS] STOPPED.")
 
     def get_coordinates(self):
         return (self.latitude, self.longitude)
@@ -122,4 +122,4 @@ class GPSManager:
             self._thread.join(timeout=1.0)
         self.gps.close()
         if self.logger:
-            self.logger.info("🛰️ Hilo GPS detenido.")
+            self.logger.info("[GPS] THREAD STOPPED.")

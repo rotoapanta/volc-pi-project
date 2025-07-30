@@ -4,8 +4,6 @@ import time
 from utils.storage_utils import get_dta_path
 from config import STATION_NAME, IDENTIFIER, MODEL, SERIAL_NUMBER
 
-TIPO_ESTACION = "SIS"  # Sismico
-
 class SeismicDataAccumulator:
     def __init__(self):
         self.data_accumulator = {}

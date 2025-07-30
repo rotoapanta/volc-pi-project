@@ -9,6 +9,7 @@ from utils.power_guard import PowerGuard
 from managers.gps_manager import GPSManager  # ← IMPORTANTE
 from utils.usb_monitor import start_usb_monitor
 from sensors.seismic import SeismicSensor
+import time
 
 if __name__ == "__main__":
     logger = setup_logger()
@@ -50,7 +51,8 @@ if __name__ == "__main__":
             return None, None, None
 
     def seismic_callback(data):
-        logger.info(f"[SEISMIC] {data}")
+        timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+        logger.info(f"[SEISMIC] TIME={timestamp} {data}")
         lat, lon, alt = get_last_gps()
         voltage = battery_monitor.read_all()["voltage"]
         # Solo guardar si hay posición válida de GPS

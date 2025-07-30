@@ -29,7 +29,7 @@ class PowerGuard(threading.Thread):
                     self.critical_count += 1
                     self.logger.warning(f"{CRITICAL_LOG_TAG} Batería crítica: {voltage:.2f} V - ciclo {self.critical_count}/{MAX_CRITICAL_CYCLES}")
                     if self.critical_count >= MAX_CRITICAL_CYCLES:
-                        self.logger.critical("⚠️ Apagando sistema por batería crítica")
+                        self.logger.critical("[BATTERY] ⚠️ Apagando sistema por batería crítica")
                         if self.leds:
                             self.leds.set("ERROR", True)
                         time.sleep(2)  # pequeña espera para ver el LED
@@ -37,7 +37,7 @@ class PowerGuard(threading.Thread):
                         break
                 else:
                     self.critical_count = 0
-                    self.logger.info(f"🔋 Batería estable: {voltage:.2f} V ({status})")
+                    self.logger.info(f"[BATTERY] 🔋 Stable: {voltage:.2f} V ({status})")
 
                 # LED indicador si se desea:
                 if self.leds:

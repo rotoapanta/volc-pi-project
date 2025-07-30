@@ -28,7 +28,7 @@ class WeatherStation:
         self.rainfall_count += 1
         self.rainfall_accumulated += 0.25
         timestamp = self.get_timestamp()
-        self.logger.info(f"Impulso detectado: {self.rainfall_count} tips, {self.rainfall_accumulated:.2f} mm acumulados a las {timestamp}")
+        self.logger.info(f"[PLUVIOMETER] TIME={timestamp} TIPS={self.rainfall_count:02d} ACCUMULATED_RAIN={self.rainfall_accumulated:.2f}mm")
         self.leds.blink("TX")
 
     def get_timestamp(self):
@@ -93,9 +93,9 @@ class WeatherStation:
             try:
                 with open(filename, 'w') as file:
                     json.dump(data, file, indent=4)
-                self.logger.info(f"✅ Datos guardados: {filename}")
+                self.logger.info(f"[PLUVIOMETER] ✅ Datos guardados: {filename}")
             except Exception as e:
-                self.logger.error(f"Error al guardar datos: {e}")
+                self.logger.error(f"[PLUVIOMETER] Error al guardar datos: {e}")
                 self.leds.set("ERROR", True)
 
         self.data_accumulator = {}
@@ -115,10 +115,10 @@ class WeatherStation:
         if self.last_interval_end_str is None or self.last_interval_end_str != current_interval_end_str:
             if self.rainfall_accumulated > 0:
                 self.log_rainfall(date_str, current_interval_end_str, self.rainfall_accumulated)
-                self.logger.info(f"💧 Lluvia registrada: {self.rainfall_accumulated:.2f} mm en {current_interval_end_str}")
+                self.logger.info(f"[PLUVIOMETER] 💧 Lluvia registrada: {self.rainfall_accumulated:.2f} mm en {current_interval_end_str}")
             else:
                 self.log_rainfall(date_str, current_interval_end_str, 0.0)
-                self.logger.info(f"⏳ Sin lluvia. Registrado 0.0 mm para {current_interval_end_str}")
+                self.logger.info(f"[PLUVIOMETER] ⏳ Sin lluvia. Registrado 0.0 mm para {current_interval_end_str}")
             self.rainfall_accumulated = 0.0
             self.rainfall_count = 0
             self.last_interval_end_str = current_interval_end_str
