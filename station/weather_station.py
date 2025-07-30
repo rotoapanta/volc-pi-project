@@ -55,14 +55,15 @@ class WeatherStation:
         if lat is not None and lon is not None and alt is not None:
             if interval_end_str not in self.data_accumulator:
                 voltage = self.battery_monitor.read_all()["voltage"]
+                # Redondear a dos decimales y usar campo en mayúsculas
                 self.data_accumulator[interval_end_str] = {
                     "FECHA": date_str,
                     "TIEMPO": interval_end_str,
+                    "LATITUD": lat,
+                    "LONGITUD": lon,
+                    "ALTURA": alt,
                     "NIVEL": rainfall_mm,
-                    "BATERIA": voltage,
-                    "latitud": lat,
-                    "longitud": lon,
-                    "altura": alt
+                    "BATERIA": round(voltage, 2)
                 }
                 self.save_accumulated_data()
         else:

@@ -38,6 +38,8 @@ if __name__ == "__main__":
     from utils.seismic_utils import SeismicDataAccumulator
     from config import SEISMIC_STORAGE_INTERVAL_MINUTES
     seismic_acc = SeismicDataAccumulator(acquisition_interval=SEISMIC_STORAGE_INTERVAL_MINUTES)
+    from utils.battery_utils import BatteryMonitor
+    battery_monitor = BatteryMonitor()
     import json
     def get_last_gps():
         try:
@@ -50,13 +52,15 @@ if __name__ == "__main__":
     def seismic_callback(data):
         logger.info(f"[SEISMIC] {data}")
         lat, lon, alt = get_last_gps()
+        voltage = battery_monitor.read_all()["voltage"]
         # Solo guardar si hay posición válida de GPS
         if lat is not None and lon is not None and alt is not None:
             seismic_acc.accumulate_and_save(
                 data,
                 latitud=lat,
                 longitud=lon,
-                altura=alt
+                altura=alt,
+                voltage=voltage
             )
         else:
             logger.warning("No se guarda dato sísmico: aún no hay fix de GPS.")
