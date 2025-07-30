@@ -37,7 +37,8 @@ class PowerGuard(threading.Thread):
                         break
                 else:
                     self.critical_count = 0
-                    self.logger.info(f"[BATTERY] 🔋 Stable: {voltage:.2f} V ({status})")
+                    msg = f"[BATTERY] 🔋 Stable: {voltage:.2f} V ({status})"
+                    self.logger.info(msg)
 
                 # LED indicador si se desea:
                 if self.leds:

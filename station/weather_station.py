@@ -28,7 +28,10 @@ class WeatherStation:
         self.rainfall_count += 1
         self.rainfall_accumulated += 0.25
         timestamp = self.get_timestamp()
-        self.logger.info(f"[PLUVIOMETER] TIME={timestamp} TIPS={self.rainfall_count:02d} ACCUMULATED_RAIN={self.rainfall_accumulated:.2f}mm")
+        msg = f"[PLUVIOMETER] TIME={timestamp} TIPS={self.rainfall_count:02d} ACCUMULATED_RAIN={self.rainfall_accumulated:.2f}mm"
+        self.logger.info(msg)
+        from utils.print_utils import print_colored
+        print_colored(msg)
         self.leds.blink("TX")
 
     def get_timestamp(self):
@@ -93,7 +96,9 @@ class WeatherStation:
             try:
                 with open(filename, 'w') as file:
                     json.dump(data, file, indent=4)
-                self.logger.info(f"[PLUVIOMETER] ✅ Datos guardados: {filename}")
+                from utils.print_utils import print_colored
+                msg = f"[ OK ] Pluviometric data saved: {filename}"
+                print_colored(msg)
             except Exception as e:
                 self.logger.error(f"[PLUVIOMETER] Error al guardar datos: {e}")
                 self.leds.set("ERROR", True)
@@ -115,10 +120,12 @@ class WeatherStation:
         if self.last_interval_end_str is None or self.last_interval_end_str != current_interval_end_str:
             if self.rainfall_accumulated > 0:
                 self.log_rainfall(date_str, current_interval_end_str, self.rainfall_accumulated)
-                self.logger.info(f"[PLUVIOMETER] 💧 Lluvia registrada: {self.rainfall_accumulated:.2f} mm en {current_interval_end_str}")
+                msg = f"[PLUVIOMETER] ACCUMULATED_RAIN={self.rainfall_accumulated:.2f}mm TIME={current_interval_end_str}"
+                self.logger.info(msg)
             else:
                 self.log_rainfall(date_str, current_interval_end_str, 0.0)
-                self.logger.info(f"[PLUVIOMETER] ⏳ Sin lluvia. Registrado 0.0 mm para {current_interval_end_str}")
+                msg = f"[PLUVIOMETER] ACCUMULATED_RAIN=0.00mm TIME={current_interval_end_str}"
+                self.logger.info(msg)
             self.rainfall_accumulated = 0.0
             self.rainfall_count = 0
             self.last_interval_end_str = current_interval_end_str

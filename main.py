@@ -52,7 +52,8 @@ if __name__ == "__main__":
 
     def seismic_callback(data):
         timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        logger.info(f"[SEISMIC] TIME={timestamp} {data}")
+        msg = f"[SEISMIC] TIME={timestamp} {data}"
+        logger.info(msg)
         lat, lon, alt = get_last_gps()
         voltage = battery_monitor.read_all()["voltage"]
         # Solo guardar si hay posición válida de GPS

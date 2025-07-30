@@ -73,7 +73,8 @@ class GPSManager:
                 if not self.has_synced_time and utc_time:
                     if sync_system_clock(utc_time):
                         if self.logger:
-                            self.logger.info(f"[GPS] TIME_SYNC: {utc_time}")
+                            msg = f"[GPS] TIME_SYNC: {utc_time}"
+                            self.logger.info(msg)
                         self.has_synced_time = True
 
                 # Guardar la última posición GPS válida en un archivo
@@ -87,7 +88,8 @@ class GPSManager:
 
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 if self.logger:
-                    self.logger.info(f"[GPS] FIX: SATS={sats} POS=({lat:.5f}, {lon:.5f}) ALT={alt:.1f}m")
+                    msg = f"[GPS] FIX: SATS={sats} POS=({lat:.5f}, {lon:.5f}) ALT={alt:.1f}m"
+                    self.logger.info(msg)
                 if self.gps_status != "FIX":
                     self.gps_status = "FIX"
                     if self.leds:
@@ -95,7 +97,8 @@ class GPSManager:
             else:
                 if self.gps_status != "SEARCHING" and (now - last_fix_time) > fix_timeout:
                     if self.logger:
-                        self.logger.info("[GPS] SEARCHING FOR FIX...")
+                        msg = "[GPS] SEARCHING FOR FIX..."
+                        self.logger.info(msg)
                     self.gps_status = "SEARCHING"
                     if self.leds:
                         self.leds.set_gps_status("SEARCHING")
@@ -105,7 +108,8 @@ class GPSManager:
         if self.leds:
             self.leds.set_gps_status("[GPS] NO_FIX")
         if self.logger:
-            self.logger.info("[GPS] STOPPED.")
+            msg = "[GPS] STOPPED."
+            self.logger.info(msg)
 
     def get_coordinates(self):
         return (self.latitude, self.longitude)
@@ -122,4 +126,5 @@ class GPSManager:
             self._thread.join(timeout=1.0)
         self.gps.close()
         if self.logger:
-            self.logger.info("[GPS] THREAD STOPPED.")
+            msg = "[GPS] THREAD STOPPED."
+            self.logger.info(msg)
