@@ -41,7 +41,7 @@ class RainManager:
                     if gps_data['LATITUD'] is None or gps_data['LONGITUD'] is None or gps_data['ALTURA'] is None:
                         self.logger.info("Dato GPS no válido en rain_manager (lat/lon/alt None)")
                     else:
-                        msg = f"Dato GPS recibido en rain_manager: lat: {gps_data['LATITUD']} lon: {gps_data['LONGITUD']} alt: {gps_data['ALTURA']}"
+                        msg = f"Dato GPS recibido en rain_manager: lat: {gps_data['LATITUD']} | lon: {gps_data['LONGITUD']} | alt: {gps_data['ALTURA']}"
                         self.logger.info(msg)
             except Exception as e:
                 if hasattr(self, 'gps_logger'):
@@ -64,8 +64,8 @@ class RainManager:
                 "BATERIA": battery
             }
             # 5. Log y almacenamiento
-            rain_msg = f"NIVEL={raw['NIVEL']}"
+            rain_msg = f"Nivel: {raw['NIVEL']} m"
             self.logger.info(rain_msg)
             self.storage.add_data(raw)
-            self.logger.info(f"[Datos lluvia guardados]")
+            self.logger.info(f"Datos lluvia guardados")
             time.sleep(self.interval)

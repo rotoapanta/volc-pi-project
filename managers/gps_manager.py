@@ -136,7 +136,7 @@ class GPSManager:
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 # Always show FIX message when position is valid
                 if self.logger:
-                    msg = f"Fix: Sats={sats} | Pos={lat:.5f} | {lon:.5f} | Alt={alt:.1f}m"
+                    msg = f"Fix: Sats: {sats} | Pos: {lat:.5f} | {lon:.5f} | Alt: {alt:.1f}m"
                     self.logger.info(msg)
                 if self.gps_status != "FIX":
                     self.gps_status = "FIX"

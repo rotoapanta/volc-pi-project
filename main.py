@@ -118,7 +118,7 @@ def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, le
             last_usb_path = usb_path
         elif not usb_path and usb_connected:
             # USB desconectada
-            logger.warning("[HOTPLUG] Memoria USB desconectada. Volviendo a almacenamiento interno.")
+            logger.warning("Memoria USB desconectada. Volviendo a almacenamiento interno.")
             seismic_storage.set_output_dir(internal_dir)
             pluvi_storage.set_output_dir(internal_dir)
             # Encender LED MEDIA (USB ausente)
