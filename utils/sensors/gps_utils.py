@@ -51,9 +51,10 @@ def extract_utc_time(nmea_msg):
     Retorna una cadena de tiempo UTC a partir de sentencias GGA o RMC.
     """
     if hasattr(nmea_msg, 'timestamp'):
-        now = datetime.utcnow()
         t = nmea_msg.timestamp
-        return datetime(now.year, now.month, now.day, t.hour, t.minute, t.second)
+        if t is not None:
+            now = datetime.utcnow()
+            return datetime(now.year, now.month, now.day, t.hour, t.minute, t.second)
     return None
 
 def sync_system_clock(utc_datetime, logger=None):

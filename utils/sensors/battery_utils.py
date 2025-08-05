@@ -18,9 +18,9 @@ class BatteryMonitor:
         self.low_threshold = BATTERY_LOW_VOLTAGE
         self.critical_threshold = BATTERY_CRITICAL_VOLTAGE
 
-    def read_voltage(self):
+    def read_calibrated_battery_voltage(self):
         """
-        Lee el voltaje de la batería y aplica factor de calibración.
+        Lee el voltaje de la batería, aplica calibración y retorna el valor.
         Si ocurre un error I2C, retorna None y registra el error.
         """
         try:
@@ -48,7 +48,7 @@ class BatteryMonitor:
         Devuelve un diccionario con voltaje y estado de batería.
         Si ocurre un error, retorna estado 'ERROR'.
         """
-        voltage = self.read_voltage()
+        voltage = self.read_calibrated_battery_voltage()
         if voltage is None:
             return {
                 "voltage": None,

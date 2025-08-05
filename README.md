@@ -130,6 +130,37 @@ Para máxima robustez, usa el symlink persistente de `/dev/serial/by-id/` para c
 
 > El comportamiento de los LEDs es gestionado automáticamente por el sistema según el estado de cada subsistema. No es necesario controlarlos manualmente.
 
+## Mensajes de Log del Sistema
+
+A continuación se listan los principales mensajes de log generados por el sistema (especialmente en el arranque):
+
+| Nivel   | Mensaje / Formato                                                                                 | Contexto / Descripción                                                        |
+|---------|---------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
+| INFO    | ==================== INICIALIZACIÓN DEL SISTEMA ====================                              | Inicio del proceso de arranque                                                |
+| INFO    | Estación activa: {STATION_NAME} - Intervalo de adquisición: {RAIN_INTERVAL_MINUTES} min           | Nombre de estación y frecuencia de adquisición                                |
+| WARNING | No se pudo mostrar mensaje de estación activa: {e}                                                | Error al mostrar el mensaje de estación                                       |
+| INFO    | Sensor de lluvia configurado | GPIO: {RAIN_SENSOR_PIN}                                            | Sensor de lluvia detectado y configurado                                      |
+| ERROR   | Sensor de lluvia: error al configurar ({e})                                                       | Error al configurar el sensor de lluvia                                       |
+| INFO    | Memoria USB detectada | Ruta: {usb} | Espacio libre: {free_mb} MB                                 | USB detectada y espacio disponible                                            |
+| WARNING | Memoria USB: espacio bajo (<{MIN_FREE_MB} MB)                                                     | Espacio en USB por debajo del umbral                                          |
+| ERROR   | Memoria USB: error al acceder ({e})                                                               | Error al acceder a la memoria USB                                             |
+| WARNING | Memoria USB no detectada | Usando almacenamiento interno: {local_path}                            | No se detecta USB, se usa almacenamiento interno                              |
+| INFO    | Espacio local configurado | Ruta: {local_path} | Espacio libre: {local_free_mb} MB                | Espacio disponible en almacenamiento interno                                  |
+| ERROR   | Espacio local: error al verificar ({e})                                                           | Error al verificar espacio local                                              |
+| INFO    | GPS configurado | Puerto: {gps_port_short} | Baudrate: {GPS_BAUDRATE} | Sync interval: {GPS_SYNC_INTERVAL_SECONDS} s | GPS detectado y configurado                                         |
+| DEBUG   | GPS: módulo no implementado o error ({e})                                                         | GPS no implementado o error                                                   |
+| INFO    | Módulo sísmico configurado | Puerto: {seismic_port_short} | Baudrate: {SEISMIC_BAUDRATE} | Intervalo: {SEISMIC_INTERVAL_MINUTES} min | Módulo sísmico detectado y configurado |
+| WARNING | Módulo sísmico: error al inicializar ({e})                                                        | Error al inicializar el módulo sísmico                                        |
+| INFO    | LoRa: módulo no implementado aún                                                                  | Placeholder para LoRa                                                         |
+| DEBUG   | Estado LoRa: no implementado                                                                      | Placeholder para LoRa                                                         |
+| INFO    | 🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}         | Voltaje y estado de la batería al inicio                                      |
+| WARNING | Voltaje de batería inicial: ERROR ({battery_info['status']})                                      | Error al leer el voltaje de batería                                           |
+| WARNING | ⚠️ Nivel de batería bajo                                                                          | Batería en estado BAJA                                                        |
+| ERROR   | 🔋 Error al leer voltaje de batería inicial - Estado: {battery_info['status']}                    | Error crítico al leer voltaje de batería                                      |
+| INFO    | ===================================================================                              | Fin del bloque de inicialización                                              |
+
+> Los mensajes pueden contener variables entre llaves `{}` que se reemplazan en tiempo de ejecución.
+
 ## Créditos
 
 Desarrollado por [rotoapanta](https://github.com/rotoapanta) y colaboradores.

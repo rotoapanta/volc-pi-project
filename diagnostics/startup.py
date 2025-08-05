@@ -115,11 +115,9 @@ def startup_diagnostics(leds, logger=None):
     lines, conectado, wlan_ip, eth_ip = network_status_lines()
     for nivel, mensaje in lines:
         getattr(logger, nivel)(mensaje)
-
-    # 8. LEDs de red
     leds.set_network_status(eth_ip, wlan_ip)
 
-    # 9. Estado de la batería
+    # 8. Estado de la batería
     battery = BatteryMonitor()
     battery_info = battery.read_all()
     # battery.close()  # No cerrar el bus I2C aquí para evitar conflictos
@@ -129,7 +127,8 @@ def startup_diagnostics(leds, logger=None):
 
     # 10. Mensaje en log
     if battery_info['voltage'] is not None:
-        logger.info(f"Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
+        # Solo mostrar el mensaje con emoji para evitar duplicidad
+        logger.info(f"🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}")
     else:
         logger.warning(f"Voltaje de batería inicial: ERROR ({battery_info['status']})")
 
@@ -137,7 +136,6 @@ def startup_diagnostics(leds, logger=None):
     if battery_info["status"] == "BAJA":
         logger.warning("⚠️ Nivel de batería bajo")
     elif battery_info["voltage"] is not None:
-        logger.info(f"🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}")
         from datetime import datetime
     else:
         logger.error(f"🔋 Error al leer voltaje de batería inicial - Estado: {battery_info['status']}")

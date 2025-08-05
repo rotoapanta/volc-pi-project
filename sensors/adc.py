@@ -31,7 +31,7 @@ class ADS1115Reader:
         try:
             self.bus = smbus2.SMBus(bus)
             self.address = address
-            logger.info(f"ADS1115 inicializado en bus {bus}, dirección {hex(address)}.")
+            logger.info(f"Módulo ADC (ADS1115) inicializado | Bus: {bus} | Dirección: {hex(address)}.")
         except Exception as e:
             logger.error(f"Error al inicializar el bus I2C {bus} para ADS1115: {e}")
             raise
@@ -58,7 +58,7 @@ class ADS1115Reader:
         logger.debug(f"Lectura cruda canal {channel}: {raw}")
         return raw
 
-    def read_voltage(self, channel=0):
+    def read_channel_voltage(self, channel=0):
         """
         Convierte la lectura cruda del canal en voltios.
         Returns el voltaje medido en el canal.
@@ -79,9 +79,8 @@ class ADS1115Reader:
         Returns the real battery voltage considering the resistive divider.
         Does NOT apply additional calibration (see battery_utils).
         """
-        vout = self.read_voltage(channel)
+        vout = self.read_channel_voltage(channel)
         vin = vout * (R1 + R2) / R2
-        logger.info(f"Voltaje batería (canal {channel}): {vin:.4f} V")
         return vin
 
     def close(self):
