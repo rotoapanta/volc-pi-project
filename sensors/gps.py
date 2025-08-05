@@ -2,10 +2,10 @@
 
 import serial
 import threading
-from utils.print_utils import print_colored
+from config import GPS_PORT, GPS_BAUDRATE, GPS_TIMEOUT
 
 class GPSReader:
-    def __init__(self, port="/dev/ttyUSB0", baudrate=9600, timeout=1.0):
+    def __init__(self, port=GPS_PORT, baudrate=GPS_BAUDRATE, timeout=GPS_TIMEOUT):
         self.port = port
         self.baudrate = baudrate
         self.timeout = timeout

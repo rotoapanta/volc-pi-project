@@ -13,7 +13,7 @@ Este proyecto implementa una estación meteorológica y sísmica robusta y autó
 - **Pluviómetro tipo balancín**: Registro preciso de cada "tip" (pulso de lluvia) con antirrebote por hardware y software.
 - **Medición de batería**: Lectura de voltaje mediante ADC ADS1115 y divisor resistivo, con umbrales configurables y lógica de apagado seguro.
 - **Almacenamiento dual**: Guarda datos en memoria USB si está presente, o en almacenamiento interno si no.
-- **Indicadores LED**: Estado de red, GPS, batería, almacenamiento, transmisi��n, error y heartbeat.
+- **Indicadores LED**: Estado de red, GPS, batería, almacenamiento, transmisión, error y heartbeat.
 - **GPS**: Adquisición de posición, altitud y sincronización horaria con FIX robusto.
 - **Sensor sísmico USB-Serial**: Integración de sensores sísmicos que envían datos por puerto serie USB, con selección robusta de puerto por symlink persistente.
 - **Robustez**: Manejo de errores I2C, monitoreo dinámico de USB, lógica de histeresis para FIX GPS, logs detallados, selección de puertos USB-Serial por /dev/serial/by-id/.
@@ -27,7 +27,7 @@ Este proyecto implementa una estación meteorológica y sísmica robusta y autó
 - Módulo ADC ADS1115
 - Módulo GPS compatible UART o USB-Serial
 - Sensor sísmico con salida USB-Serial (Prolific, FTDI, etc.)
-- LEDs y resistencias para indicadores (GPIO: 5, 6, 16, 22, 24, 25, 26)
+- LEDs y resistencias para indicadores (GPIO: 5, 6, 16, 22, 24, 25, 26, 27)
 - Memoria USB (opcional, para almacenamiento externo)
 
 ### Software
@@ -78,7 +78,7 @@ Para máxima robustez, usa el symlink persistente de `/dev/serial/by-id/` para c
    python3 main.py
    ```
 2. Los datos se guardarán automáticamente en la memoria USB si está presente, o en la SD interna si no.
-3. Los LEDs indicarán el estado de cada subsistema (ver tabla de pines abajo).
+3. Los LEDs indicarán el estado de cada subsistema (ver tabla de pines y funcionamiento abajo).
 4. El log detallado se encuentra en `logs/rain_monitor.log`.
 5. Los datos sísmicos se registran en el log con el prefijo `[SEISMIC]`.
 
@@ -102,11 +102,33 @@ Para máxima robustez, usa el symlink persistente de `/dev/serial/by-id/` para c
 |-----------|------|
 | HB        | 5    |
 | VOLTAGE   | 6    |
-| NET       | 16   |
+| ETH       | 16   |
 | TX        | 22   |
 | GPS       | 24   |
 | MEDIA     | 25   |
 | ERROR     | 26   |
+| WIFI      | 27   |
+
+## Estado y funcionamiento de los LEDs
+
+| LED       | Estado         | Significado/Condición                                                        |
+|-----------|---------------|----------------------------------------------------------------------------|
+| HB        | Parpadeo      | Sistema encendido y funcionando correctamente (heartbeat)                   |
+| VOLTAGE   | Apagado       | Voltaje normal                                                              |
+| VOLTAGE   | Parpadeo lento| Batería baja                                                                |
+| VOLTAGE   | Parpadeo rápido| Batería crítica                                                            |
+| ETH       | Encendido     | Conexión Ethernet (cableada) activa (eth0 con IP asignada)                  |
+| ETH       | Apagado       | Sin conexión Ethernet                                                       |
+| WIFI      | Encendido     | Conexión WiFi activa (wlan0 con IP asignada)                                |
+| WIFI      | Apagado       | Sin conexión WiFi                                                           |
+| GPS       | Apagado       | Sin FIX de GPS                                                              |
+| GPS       | Encendido     | FIX de GPS obtenido                                                         |
+| GPS       | Parpadeo      | Buscando FIX de GPS                                                         |
+| MEDIA     | Encendido     | Almacenamiento USB no detectado, usando almacenamiento interno              |
+| ERROR     | Encendido     | Error crítico detectado en algún subsistema                                 |
+| TX        | Encendido/Parpadeo | Indica transmisión de datos o actividad relevante                     |
+
+> El comportamiento de los LEDs es gestionado automáticamente por el sistema según el estado de cada subsistema. No es necesario controlarlos manualmente.
 
 ## Créditos
 

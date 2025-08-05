@@ -9,11 +9,12 @@ class LEDManager:
         self.led_pins = {
             "HB": 5,
             "VOLTAGE": 6,
-            "NET": 16,
+            "ETH": 16,
             "TX": 22,
             "GPS": 24,
             "MEDIA": 25,
-            "ERROR": 26
+            "ERROR": 26,
+            "WIFI": 27  # Nuevo LED para WiFi en GPIO27 (pin físico 13)
         }
         self.chip = lgpio.gpiochip_open(0)
         self.blink_active = {}
@@ -125,6 +126,29 @@ class LEDManager:
                 print(f"[WARN] No se pudo escribir en GPIO {pin}: {e}")
         elif status == "SEARCHING":
             self._start_blinker(pin, on_time=1.0, off_time=1.0)
+
+    def set_network_status(self, eth_ip, wlan_ip):
+        """Controla los LEDs de red según el estado de las interfaces."""
+        # LED Ethernet
+        pin_eth = self.led_pins.get("ETH")
+        if pin_eth is not None:
+            self._stop_blinker(pin_eth)
+            try:
+                lgpio.gpio_write(self.chip, pin_eth, 1 if eth_ip else 0)
+            except Exception as e:
+                print(f"[WARN] No se pudo escribir en GPIO {pin_eth}: {e}")
+        else:
+            print("[WARN] LED 'ETH' no está definido.")
+        # LED WiFi
+        pin_wifi = self.led_pins.get("WIFI")
+        if pin_wifi is not None:
+            self._stop_blinker(pin_wifi)
+            try:
+                lgpio.gpio_write(self.chip, pin_wifi, 1 if wlan_ip else 0)
+            except Exception as e:
+                print(f"[WARN] No se pudo escribir en GPIO {pin_wifi}: {e}")
+        else:
+            print("[WARN] LED 'WIFI' no está definido.")
 
     def cleanup(self):
         for pin in self.led_pins.values():

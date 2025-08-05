@@ -1,9 +1,9 @@
 import os
 import subprocess
 import shutil
-import logging
+from utils.log_utils import setup_logger
 
-logger = logging.getLogger("usb_manager")
+logger = setup_logger("usb_manager")
 
 MEDIA_BASE_PATH = "/media/pi"
 MIN_FREE_MB = 50

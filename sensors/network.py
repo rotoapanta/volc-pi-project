@@ -26,27 +26,28 @@ def is_connected():
         return False
 
 def network_status_lines():
-    """Devuelve lista de líneas con el estado de red."""
+    """Devuelve (lines, conectado, wlan_ip, eth_ip): lista de tuplas (nivel, mensaje), estado de conexión general, y estado de interfaces."""
     lines = []
     wlan_ip = get_ip_address("wlan0")
     eth_ip = get_ip_address("eth0")
 
     if wlan_ip:
-        lines.append(f"[ OK ] Wi-Fi conectada (wlan0 - IP: {wlan_ip})")
+        lines.append(("info", f"Wi-Fi conectada | wlan0 - IP: {wlan_ip}"))
     else:
-        lines.append("[WARN] Wi-Fi no conectada")
+        lines.append(("warning", "Wi-Fi no conectada"))
 
     if eth_ip:
-        lines.append(f"[ OK ] LAN conectada (eth0 - IP: {eth_ip})")
+        lines.append(("info", f"LAN conectada | eth0 - IP: {eth_ip}"))
     else:
-        lines.append("[WARN] LAN no conectada")
+        lines.append(("warning", "LAN no conectada"))
 
-    if is_connected():
-        lines.append("[ OK ] Acceso a Internet disponible")
+    conectado = is_connected()
+    if conectado:
+        lines.append(("info", "Acceso a Internet disponible"))
     else:
-        lines.append("[WARN] Sin acceso a Internet")
+        lines.append(("warning", "Sin acceso a Internet"))
 
-    return lines
+    return lines, conectado, wlan_ip, eth_ip
 
 
 

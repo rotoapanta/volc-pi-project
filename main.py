@@ -1,82 +1,149 @@
-# main.py — Punto de entrada principal del sistema
-
-from config import STATION_NAME, IDENTIFIER, ACQUISITION_INTERVAL
-from station.weather_station import WeatherStation
-from diagnostics.startup import startup_diagnostics
-from utils.leds_utils import LEDManager
 from utils.log_utils import setup_logger
-from utils.power_guard import PowerGuard
-from managers.gps_manager import GPSManager  # ← IMPORTANTE
-from utils.usb_monitor import start_usb_monitor
-from sensors.seismic import SeismicSensor
+import os
+import threading
+from utils.storage.block_storage import BlockStorage
+from utils.storage.storage_utils import find_mounted_usb
+from utils.leds_utils import LEDManager
+from diagnostics.startup import startup_diagnostics
+from config import (
+    STATION_NAME, IDENTIFIER, SEISMIC_STATION_TYPE, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER,
+    SEISMIC_PORT, SEISMIC_BAUDRATE, PLUVI_STATION_TYPE, PLUVI_MODEL, PLUVI_SERIAL_NUMBER,
+    BLOCK_TYPE, SENSORS
+)
+from managers.seismic_manager import SeismicManager
+from managers.rain_manager import RainManager
+from config import INTERNAL_BACKUP_DIR
+
+# ------------------- Inicialización de sistema y recursos -------------------
+
+# LEDs y diagnóstico
+leds = LEDManager()
+leds.heartbeat()
+startup_diagnostics(leds)
+
+# Logger centralizado
+logger = setup_logger("main")
+
+# Selección dinámica de ruta de almacenamiento
+usb_path = find_mounted_usb()
+if usb_path:
+    output_dir = os.path.join(usb_path, "DTA")
+    logger.info(f"Almacenamiento USB detectado: {output_dir}")
+else:
+    output_dir = INTERNAL_BACKUP_DIR
+    logger.warning(f"No se detectó USB, usando almacenamiento interno: {output_dir}")
+
+# ------------------- Configuración de sensores y almacenamiento -------------------
+
+# Intervalos
+seismic_sensor = next((s for s in SENSORS if s["name"] == "seismic"), None)
+interval_minutes = seismic_sensor["interval_minutes"] if seismic_sensor else 1
+rain_sensor = next((s for s in SENSORS if s["name"] == "rain"), None)
+pluvi_interval_minutes = rain_sensor["interval_minutes"] if rain_sensor else 1
+
+# Almacenamiento
+from utils.extractors.data_extractors import extract_seismic
+seismic_storage = BlockStorage(
+    station_name=STATION_NAME,
+    identifier=IDENTIFIER,
+    model=SEISMIC_MODEL,
+    serial_number=SEISMIC_SERIAL_NUMBER,
+    logger=logger,
+    output_dir=output_dir,
+    block_type=BLOCK_TYPE,
+    tipo=SEISMIC_STATION_TYPE,
+    interval_minutes=interval_minutes,
+    extractor_func=extract_seismic
+)
+from utils.extractors.data_extractors import extract_rain
+pluvi_storage = BlockStorage(
+    station_name=STATION_NAME,
+    identifier=IDENTIFIER,
+    model=PLUVI_MODEL,
+    serial_number=PLUVI_SERIAL_NUMBER,
+    logger=logger,
+    output_dir=output_dir,
+    block_type=BLOCK_TYPE,
+    tipo=PLUVI_STATION_TYPE,
+    interval_minutes=pluvi_interval_minutes,
+    extractor_func=extract_rain
+)
+
+# ------------------- Inicialización de managers -------------------
+
+# SeismicManager
+seismic_config = {
+    "port": SEISMIC_PORT,
+    "baudrate": SEISMIC_BAUDRATE,
+    "interval": interval_minutes * 60  # segundos
+}
+seismic_manager = SeismicManager(seismic_config, logger, seismic_storage)
+
+# RainManager
+rain_config = {
+    "interval": pluvi_interval_minutes * 60  # segundos
+}
+rain_manager = RainManager(rain_config, logger, pluvi_storage)
+
+# ------------------- Lanzamiento de hilos de sensores -------------------
+
+threads = []
+threads.append(threading.Thread(target=seismic_manager.run, daemon=True))
+threads.append(threading.Thread(target=rain_manager.run, daemon=True))
+for t in threads:
+    t.start()
+
+# ------------------- Monitor de USB hotplug y migración de datos -------------------
 import time
+from utils.storage.migrate_to_usb import migrate_internal_to_usb
 
-if __name__ == "__main__":
-    logger = setup_logger()
-    leds = LEDManager()
+def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, leds, check_interval=5):
+    usb_connected = False
+    last_usb_path = None
+    while True:
+        usb_path = find_mounted_usb()
+        if usb_path and not usb_connected:
+            # USB conectada
+            output_dir = os.path.join(usb_path, "DTA")
+            logger.info(f"[HOTPLUG] Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
+            seismic_storage.set_output_dir(output_dir)
+            pluvi_storage.set_output_dir(output_dir)
+            # Migrar archivos pendientes
+            files_migrated = migrate_internal_to_usb(internal_dir, output_dir, logger)
+            logger.info(f"[HOTPLUG] Migración completada. Archivos migrados: {files_migrated}")
+            # Apagar LED MEDIA (USB presente)
+            if leds:
+                leds.set("MEDIA", False)
+            logger.info("[HOTPLUG] LED MEDIA apagado (USB presente)")
+            usb_connected = True
+            last_usb_path = usb_path
+        elif not usb_path and usb_connected:
+            # USB desconectada
+            logger.warning("[HOTPLUG] Memoria USB desconectada. Volviendo a almacenamiento interno.")
+            seismic_storage.set_output_dir(internal_dir)
+            pluvi_storage.set_output_dir(internal_dir)
+            # Encender LED MEDIA (USB ausente)
+            if leds:
+                leds.set("MEDIA", True)
+            logger.info("[HOTPLUG] LED MEDIA encendido (USB ausente)")
+            usb_connected = False
+            last_usb_path = None
+        time.sleep(check_interval)
 
-    startup_diagnostics(leds, logger=logger)
-    # Inicia monitoreo dinámico de USB para el LED MEDIA
-    start_usb_monitor(leds, logger=logger)
+# Lanzar el monitor en un hilo aparte
+t_monitor = threading.Thread(
+    target=usb_hotplug_monitor,
+    args=(seismic_storage, pluvi_storage, logger, INTERNAL_BACKUP_DIR, leds),
+    daemon=True
+)
+t_monitor.start()
 
-    # Inicia monitoreo continuo de batería
-    power_guard = PowerGuard(leds, logger)
-    power_guard.start()
+# ------------------- Bucle principal (keep-alive y limpieza) -------------------
 
-    # Inicia monitoreo GPS (en hilo)
-    gps_manager = GPSManager(leds=leds, logger=logger)
-    gps_manager.start()
-
-    station = WeatherStation(
-        station_name=STATION_NAME,
-        identifier=IDENTIFIER,
-        acquisition_interval=ACQUISITION_INTERVAL,
-        leds=leds,
-        logger=logger
-    )
-
-    # Inicia el sensor sísmico
-    from utils.seismic_utils import SeismicDataAccumulator
-    from config import SEISMIC_STORAGE_INTERVAL_MINUTES
-    seismic_acc = SeismicDataAccumulator(acquisition_interval=SEISMIC_STORAGE_INTERVAL_MINUTES)
-    from utils.battery_utils import BatteryMonitor
-    battery_monitor = BatteryMonitor()
-    import json
-    def get_last_gps():
-        try:
-            with open("last_gps.json", "r") as f:
-                data = json.load(f)
-                return data.get("lat"), data.get("lon"), data.get("alt")
-        except Exception:
-            return None, None, None
-
-    def seismic_callback(data):
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
-        msg = f"[SEISMIC] TIME={timestamp} {data}"
-        logger.info(msg)
-        lat, lon, alt = get_last_gps()
-        voltage = battery_monitor.read_all()["voltage"]
-        # Solo guardar si hay posición válida de GPS
-        if lat is not None and lon is not None and alt is not None:
-            seismic_acc.accumulate_and_save(
-                data,
-                latitud=lat,
-                longitud=lon,
-                altura=alt,
-                voltage=voltage
-            )
-        else:
-            logger.warning("No se guarda dato sísmico: aún no hay fix de GPS.")
-    from config import SEISMIC_PORT, SEISMIC_BAUDRATE
-    seismic_sensor = SeismicSensor(port=SEISMIC_PORT, baudrate=SEISMIC_BAUDRATE, callback=seismic_callback)
-    try:
-        seismic_sensor.start()
-    except Exception as e:
-        logger.warning(f"No se pudo iniciar el sensor sísmico: {e}")
-
-    
-    try:
-        station.run()
-    finally:
-        gps_manager.stop()  # ← Asegura cerrar hilo GPS
-        seismic_sensor.stop()
+try:
+    while True:
+        time.sleep(1)  # El sistema sigue corriendo, managers activos en hilos
+except KeyboardInterrupt:
+    logger.info("Terminando y guardando datos pendientes...")
+    # Aquí podrías agregar métodos de parada para los managers si lo deseas
+    leds.cleanup()
