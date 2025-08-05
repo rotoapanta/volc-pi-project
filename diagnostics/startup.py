@@ -86,6 +86,15 @@ def startup_diagnostics(leds, logger=None):
     except Exception as e:
         logger.debug(f"GPS: módulo no implementado o error ({e})")
 
+    # 8. Estado de la batería
+    battery = BatteryMonitor()
+    battery_info = battery.read_all()
+    # battery.close()  # No cerrar el bus I2C aquí para evitar conflictos
+
+    # Control visual con LED de batería
+    leds.set_battery_status(battery_info["status"])
+
+
     # 5. Estado del módulo sísmico
     try:
         from config import SEISMIC_PORT, SEISMIC_BAUDRATE, SEISMIC_INTERVAL_MINUTES, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER, SEISMIC_STATION_TYPE
@@ -117,26 +126,19 @@ def startup_diagnostics(leds, logger=None):
         getattr(logger, nivel)(mensaje)
     leds.set_network_status(eth_ip, wlan_ip)
 
-    # 8. Estado de la batería
-    battery = BatteryMonitor()
-    battery_info = battery.read_all()
-    # battery.close()  # No cerrar el bus I2C aquí para evitar conflictos
-
-    # Control visual con LED de batería
-    leds.set_battery_status(battery_info["status"])
 
     # 10. Mensaje en log
     if battery_info['voltage'] is not None:
         # Solo mostrar el mensaje con emoji para evitar duplicidad
-        logger.info(f"🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}")
+        logger.info(f"Voltaje de batería inicial: {battery_info['voltage']:.2f} V | {battery_info['status']}")
     else:
         logger.warning(f"Voltaje de batería inicial: ERROR ({battery_info['status']})")
 
     # 11. Log según estado
     if battery_info["status"] == "BAJA":
-        logger.warning("⚠️ Nivel de batería bajo")
+        logger.warning("Nivel de batería bajo")
     elif battery_info["voltage"] is not None:
         from datetime import datetime
     else:
-        logger.error(f"🔋 Error al leer voltaje de batería inicial - Estado: {battery_info['status']}")
+        logger.error(f"Error al leer voltaje de batería inicial - Estado: {battery_info['status']}")
     logger.info("===================================================================")

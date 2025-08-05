@@ -88,7 +88,7 @@ class BlockStorage:
         }
         with open(filename, "w") as f:
             json.dump(file_data, f, indent=4)
-        self.logger.info(f"[ OK ] {self.tipo} data saved: {filename}")
+        self.logger.info(f"{self.tipo} data saved: {filename}")
 
     def flush(self):
         if self.block_data:
@@ -148,7 +148,7 @@ class BlockStorage:
                     json.dump(data, file, indent=4)
                 saved_files.append(filename)
             except Exception as e:
-                print(f"[ERROR] Error al guardar datos: {e}")
+                print(f"Error al guardar datos: {e}")
 
         self.data_accumulator = {}
         return saved_files
@@ -166,6 +166,6 @@ class BlockStorage:
         Cambia la ruta de almacenamiento y guarda los datos actuales en la nueva ubicación.
         """
         self.output_dir = new_output_dir
-        self.logger.info(f"[BlockStorage] Ruta de almacenamiento cambiada a: {new_output_dir}")
+        self.logger.info(f"Ruta de almacenamiento cambiada a: {new_output_dir}")
         # Forzar guardado inmediato en la nueva ubicación
         self.flush()

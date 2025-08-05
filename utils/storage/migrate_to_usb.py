@@ -19,9 +19,9 @@ def migrate_internal_to_usb(internal_dir, usb_dir, logger=None):
             dest_file = os.path.join(dest_root, file)
             try:
                 shutil.move(src_file, dest_file)
-                logger.info(f"[MIGRACION] {src_file} -> {dest_file}")
+                logger.info(f"Migración: {src_file} -> {dest_file}")
                 files_migrated += 1
             except Exception as e:
-                logger.error(f"[MIGRACION][ERROR] No se pudo mover {src_file} -> {dest_file}: {e}")
-    logger.info(f"[MIGRACION] Total archivos migrados: {files_migrated}")
+                logger.error(f"No se pudo mover {src_file} -> {dest_file}: {e}")
+    logger.info(f"Total archivos migrados: {files_migrated}")
     return files_migrated

@@ -118,8 +118,9 @@ class GPSManager:
                 if do_sync and (now - self.last_sync_time) >= self.sync_interval_seconds:
                     if sync_system_clock(utc_time, logger=self.logger):
                         if self.logger:
-                            msg = f"[GPS] TIME_SYNC: {utc_time}"
-                            self.logger.info(msg)
+                            # msg = f"Time Sync: {utc_time}"
+                            # self.logger.info(msg)
+                            pass
                         self.has_synced_time = True
                         self.last_sync_time = now
                     last_lost_fix_time = None
@@ -135,7 +136,7 @@ class GPSManager:
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 # Always show FIX message when position is valid
                 if self.logger:
-                    msg = f"[GPS] FIX: SATS={sats} POS={lat:.5f}, {lon:.5f} ALT={alt:.1f}m"
+                    msg = f"Fix: Sats={sats} | Pos={lat:.5f} | {lon:.5f} | Alt={alt:.1f}m"
                     self.logger.info(msg)
                 if self.gps_status != "FIX":
                     self.gps_status = "FIX"
@@ -149,7 +150,7 @@ class GPSManager:
                 if self.gps_status != "SEARCHING" and (now - last_fix_time) > fix_timeout:
                     if last_status != "SEARCHING":
                         if self.logger:
-                            msg = "[GPS] SEARCHING FOR FIX..."
+                            msg = "Searching fox Fix..."
                             self.logger.info(msg)
                         last_status = "SEARCHING"
                     self.gps_status = "SEARCHING"
@@ -199,7 +200,7 @@ class GPSManager:
             self._thread.join(timeout=1.0)
         self.gps.close()
         if self.logger:
-            msg = "[GPS] THREAD STOPPED."
+            msg = "Thread Stopped."
             self.logger.info(msg)
 
 def get_last_gps_data():

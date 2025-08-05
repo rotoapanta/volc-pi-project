@@ -105,16 +105,15 @@ def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, le
         if usb_path and not usb_connected:
             # USB conectada
             output_dir = os.path.join(usb_path, "DTA")
-            logger.info(f"[HOTPLUG] Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
+            logger.info(f"Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
             seismic_storage.set_output_dir(output_dir)
             pluvi_storage.set_output_dir(output_dir)
             # Migrar archivos pendientes
             files_migrated = migrate_internal_to_usb(internal_dir, output_dir, logger)
-            logger.info(f"[HOTPLUG] Migración completada. Archivos migrados: {files_migrated}")
+            logger.info(f"Migración completada. Archivos migrados: {files_migrated}")
             # Apagar LED MEDIA (USB presente)
             if leds:
                 leds.set("MEDIA", False)
-            logger.info("[HOTPLUG] LED MEDIA apagado (USB presente)")
             usb_connected = True
             last_usb_path = usb_path
         elif not usb_path and usb_connected:
@@ -125,7 +124,6 @@ def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, le
             # Encender LED MEDIA (USB ausente)
             if leds:
                 leds.set("MEDIA", True)
-            logger.info("[HOTPLUG] LED MEDIA encendido (USB ausente)")
             usb_connected = False
             last_usb_path = None
         time.sleep(check_interval)

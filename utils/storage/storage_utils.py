@@ -21,10 +21,10 @@ def find_mounted_usb(min_free_mb=MIN_FREE_MB):
                 free_mb = shutil.disk_usage(path).free // (1024 * 1024)
                 logger.debug(f"Espacio libre en {path}: {free_mb} MB")
                 if free_mb >= min_free_mb:
-                    logger.debug(f"💾 USB válida detectada en {path} - {free_mb} MB libres")
+                    logger.debug(f"USB válida detectada en {path} - {free_mb} MB libres")
                     return path
                 else:
-                    logger.warning(f"⚠️ Espacio insuficiente en {path} ({free_mb} MB)")
+                    logger.warning(f"Espacio insuficiente en {path} ({free_mb} MB)")
     except Exception as e:
         logger.warning(f"No se pudo explorar {MEDIA_BASE_PATH}: {e}")
     return None
@@ -45,10 +45,9 @@ def get_storage_base():
     usb_path = find_mounted_usb()
     if usb_path and has_enough_space(usb_path):
         free_gb = shutil.disk_usage(usb_path).free / (1024 ** 3)
-        logger.info(f"✅ Usando almacenamiento USB ({usb_path}) - Espacio libre: {free_gb:.2f} GB")
+        logger.info(f"Usando almacenamiento USB ({usb_path}) - Espacio libre: {free_gb:.2f} GB")
         return usb_path
     else:
-        # logger.warning("⚠️ No se detectó USB montada con espacio suficiente. Usando respaldo interno.")
         return INTERNAL_BACKUP_DIR
 
 def get_dta_path(date_str):

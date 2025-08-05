@@ -39,12 +39,11 @@ class RainManager:
                 # Log de dato GPS solo en el logger principal
                 if self.logger:
                     if gps_data['LATITUD'] is None or gps_data['LONGITUD'] is None or gps_data['ALTURA'] is None:
-                        self.logger.info("[RAIN] Dato GPS NO VÁLIDO en rain_manager (lat/lon/alt None)")
+                        self.logger.info("Dato GPS no válido en rain_manager (lat/lon/alt None)")
                     else:
-                        msg = f"[RAIN] Dato GPS recibido en rain_manager: lat: {gps_data['LATITUD']} lon: {gps_data['LONGITUD']} alt: {gps_data['ALTURA']}"
+                        msg = f"Dato GPS recibido en rain_manager: lat: {gps_data['LATITUD']} lon: {gps_data['LONGITUD']} alt: {gps_data['ALTURA']}"
                         self.logger.info(msg)
             except Exception as e:
-                print(f"[GPS][ERROR] {e}")
                 if hasattr(self, 'gps_logger'):
                     self.gps_logger.error(f"[GPS][ERROR] {e}")
             # 3. Obtener voltaje de batería            
@@ -68,5 +67,5 @@ class RainManager:
             rain_msg = f"NIVEL={raw['NIVEL']}"
             self.logger.info(rain_msg)
             self.storage.add_data(raw)
-            self.logger.info(f"[RGA][GUARDADO DATOS SISMICOS]")
+            self.logger.info(f"[Datos lluvia guardados]")
             time.sleep(self.interval)

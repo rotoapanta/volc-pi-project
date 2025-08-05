@@ -1,7 +1,7 @@
 import time
 from sensors.seismic import SeismicSensor
 from utils.extractors.data_extractors import extract_seismic
-from utils.log_utils import log_and_print, setup_logger
+from utils.log_utils import setup_logger
 import os
 
 from datetime import datetime, timedelta
@@ -42,9 +42,9 @@ class SeismicManager:
                 # Log de dato GPS solo en el logger principal
                 if self.logger:
                     if gps_data['LATITUD'] is None or gps_data['LONGITUD'] is None or gps_data['ALTURA'] is None:
-                        self.logger.info("[SEISMIC] Dato GPS NO VÁLIDO en seismic_manager (lat/lon/alt None)")
+                        self.logger.info("Dato GPS no válido en seismic_manager (lat/lon/alt None)")
                     else:
-                        msg = f"[SEISMIC] Dato GPS recibido en seismic_manager: lat: {gps_data['LATITUD']} lon: {gps_data['LONGITUD']} alt: {gps_data['ALTURA']}"
+                        msg = f"Dato GPS recibido en seismic_manager: lat: {gps_data['LATITUD']} lon: {gps_data['LONGITUD']} alt: {gps_data['ALTURA']}"
                         self.logger.info(msg)
             except Exception:
                 pass
@@ -74,5 +74,5 @@ class SeismicManager:
                     seismic_msg = f"PASA_BANDA={raw_dict['PASA_BANDA']} PASA_BAJO={raw_dict['PASA_BAJO']} PASA_ALTO={raw_dict['PASA_ALTO']}"
                     self.logger.info(seismic_msg)
                     self.storage.add_data(raw_dict)
-                    self.logger.info(f"[SIS][GUARDADO DATOS SISMICOS]")
+                    self.logger.info(f"Datos sísmicos guardados")
             time.sleep(self.interval)
