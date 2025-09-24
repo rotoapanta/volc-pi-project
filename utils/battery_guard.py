@@ -3,7 +3,7 @@ import time
 import subprocess
 from utils.log_utils import setup_logger
 
-from utils.battery_utils import BatteryMonitor
+from utils.sensors.battery_utils import BatteryMonitor
 
 # Parámetros de apagado seguro
 BATTERY_CHECK_INTERVAL = 60  # en segundos

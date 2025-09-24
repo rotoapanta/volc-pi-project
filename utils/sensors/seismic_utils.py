@@ -45,7 +45,8 @@ def parse_seismic_message(msg, fecha, tiempo, latitud=None, longitud=None, altur
     if voltage is not None:
         result["BATERIA"] = round(voltage, 2)
     else:
-        result["BATERIA"] = round((bateria_raw / 1000) * 4, 2)
+        # Unificar fuente: si no hay medición del ADC, dejar BATERIA como None
+        result["BATERIA"] = None
     ordered_keys = [
         "FECHA", "TIEMPO", "LATITUD", "LONGITUD", "ALTURA",
         "PASA_BANDA", "PASA_BAJO", "PASA_ALTO", "BATERIA"

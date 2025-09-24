@@ -4,7 +4,6 @@ import os
 import shutil
 import lgpio
 
-from utils.logs.print_utils import print_colored
 
 from config import RAIN_SENSOR_PIN, MIN_FREE_MB
 from utils.storage.storage_utils import find_mounted_usb, has_enough_space

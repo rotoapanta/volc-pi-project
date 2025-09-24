@@ -11,19 +11,33 @@ class RainSensor(BaseSensor):
         self.accumulated = 0.0  # mm
         self._lock = threading.Lock()
         self._stop = False
-        # Configuración de GPIO con lgpio y arranque del monitor con antirrebote
+        # Intentar interrupciones por RPi.GPIO; si no, fallback a sondeo con lgpio
+        self._use_gpio = False
+        self.chip = None
+        self._monitor_thread = None
         try:
-            self.chip = lgpio.gpiochip_open(0)
-            lgpio.gpio_claim_input(self.chip, RAIN_SENSOR_PIN)
-            self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
-            self._monitor_thread.start()
+            import RPi.GPIO as GPIO
+            self.GPIO = GPIO
+            GPIO.setmode(GPIO.BCM)
+            GPIO.setup(RAIN_SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
+            GPIO.add_event_detect(RAIN_SENSOR_PIN, GPIO.FALLING, callback=self.tip_callback, bouncetime=BOUNCE_TIME)
+            self._use_gpio = True
             if self.logger:
-                self.logger.info(f"RainSensor iniciado | GPIO={RAIN_SENSOR_PIN} | BOUNCE={BOUNCE_TIME} ms")
+                self.logger.info(f"RainSensor: interrupciones RPi.GPIO habilitadas | GPIO={RAIN_SENSOR_PIN} | BOUNCE={BOUNCE_TIME} ms")
         except Exception as e:
-            self.chip = None
-            self._monitor_thread = None
-            if self.logger:
-                self.logger.error(f"Error inicializando RainSensor (GPIO): {e}")
+            # Fallback a monitor por sondeo usando lgpio
+            try:
+                self.chip = lgpio.gpiochip_open(0)
+                lgpio.gpio_claim_input(self.chip, RAIN_SENSOR_PIN)
+                self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
+                self._monitor_thread.start()
+                if self.logger:
+                    self.logger.info(f"RainSensor: monitor por sondeo (lgpio) activo | GPIO={RAIN_SENSOR_PIN} | BOUNCE={BOUNCE_TIME} ms")
+            except Exception as e2:
+                self.chip = None
+                self._monitor_thread = None
+                if self.logger:
+                    self.logger.error(f"Error inicializando RainSensor (GPIO): {e2}")
 
     def tip_callback(self, channel=None):
         with self._lock:
@@ -94,10 +108,21 @@ class RainSensor(BaseSensor):
         """Detiene el hilo de monitoreo y libera recursos GPIO."""
         self._stop = True
         try:
-            if hasattr(self, '_monitor_thread') and self._monitor_thread:
+            if getattr(self, '_monitor_thread', None):
                 self._monitor_thread.join(timeout=0.5)
         except Exception:
             pass
+        # Liberar interrupciones RPi.GPIO si se usaron
+        if getattr(self, '_use_gpio', False):
+            try:
+                self.GPIO.remove_event_detect(RAIN_SENSOR_PIN)
+            except Exception:
+                pass
+            try:
+                self.GPIO.cleanup(RAIN_SENSOR_PIN)
+            except Exception:
+                pass
+        # Cerrar chip lgpio si se usó
         if getattr(self, 'chip', None) is not None:
             try:
                 lgpio.gpiochip_close(self.chip)

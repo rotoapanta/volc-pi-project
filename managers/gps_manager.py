@@ -37,7 +37,7 @@ class GPSManager:
         Initializes the GPS manager with optional support for LEDs and two loggers (general and sync).
         Allows configuring the system clock sync interval (default 1 hour).
         """
-        self.gps = GPSReader(port=GPS_PORT, baudrate=GPS_BAUDRATE, timeout=GPS_TIMEOUT)
+        self.gps = GPSReader(port=GPS_PORT, baudrate=GPS_BAUDRATE, timeout=GPS_TIMEOUT, logger=logger)
         self.leds = leds
         self.logger = logger
         self.sync_logger = sync_logger

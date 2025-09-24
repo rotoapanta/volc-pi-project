@@ -10,8 +10,8 @@ class RainManager:
     def __init__(self, config, logger=None, storage=None):
         # Inicialización del sensor de lluvia
         self.sensor = RainSensor(config, logger)
-        # Logger profesional y consistente
-        self.logger = setup_logger("rain", log_file="rain.log")
+        # Logger: usar el recibido o fallback al estándar
+        self.logger = logger if logger is not None else setup_logger("rain", log_file="rain.log")
         self.storage = storage
         self.interval = config.get('interval', 60)  # segundos
 
@@ -41,7 +41,7 @@ class RainManager:
                     if gps_data['LATITUD'] is None or gps_data['LONGITUD'] is None or gps_data['ALTURA'] is None:
                         self.logger.info("Dato GPS no válido en rain_manager (lat/lon/alt None)")
                     else:
-                        msg = f"Dato GPS recibido en rain_manager: lat: {gps_data['LATITUD']} | lon: {gps_data['LONGITUD']} | alt: {gps_data['ALTURA']}"
+                        msg = f"Dato GPS recibido en rain_manager: latitud: {gps_data['LATITUD']} | longitud: {gps_data['LONGITUD']} | altitud: {gps_data['ALTURA']}"
                         self.logger.info(msg)
             except Exception as e:
                 if hasattr(self, 'gps_logger'):
@@ -64,7 +64,7 @@ class RainManager:
                 "BATERIA": battery
             }
             # 5. Log y almacenamiento
-            rain_msg = f"Nivel: {raw['NIVEL']} mm"
+            rain_msg = f"Nivel acumulado: {raw['NIVEL']} mm"
             self.logger.info(rain_msg)
             self.storage.add_data(raw)
             # Reiniciar acumulado para el siguiente intervalo
