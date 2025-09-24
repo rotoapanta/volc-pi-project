@@ -24,6 +24,10 @@ startup_diagnostics(leds)
 # Logger centralizado
 logger = setup_logger("main")
 
+# Monitor de red en tiempo real
+from utils.network_monitor import start_network_monitor
+start_network_monitor(leds, logger)
+
 # Selección dinámica de ruta de almacenamiento
 usb_path = find_mounted_usb()
 if usb_path:
@@ -108,6 +112,7 @@ def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, le
             logger.info(f"Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
             seismic_storage.set_output_dir(output_dir)
             pluvi_storage.set_output_dir(output_dir)
+            logger.info(f"Ruta de almacenamiento cambiada a: {output_dir}")
             # Migrar archivos pendientes
             files_migrated = migrate_internal_to_usb(internal_dir, output_dir, logger)
             logger.info(f"Migración completada. Archivos migrados: {files_migrated}")
@@ -121,6 +126,7 @@ def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, le
             logger.warning("Memoria USB desconectada. Volviendo a almacenamiento interno.")
             seismic_storage.set_output_dir(internal_dir)
             pluvi_storage.set_output_dir(internal_dir)
+            logger.info(f"Ruta de almacenamiento cambiada a: {internal_dir}")
             # Encender LED MEDIA (USB ausente)
             if leds:
                 leds.set("MEDIA", True)

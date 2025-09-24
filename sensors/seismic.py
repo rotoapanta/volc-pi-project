@@ -4,6 +4,8 @@ import glob
 import os
 from utils.sensors.seismic_utils import parse_seismic_message
 from config import STATION_NAME, IDENTIFIER, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER
+from utils.log_utils import setup_logger
+logger = setup_logger("seismic_sensor", log_file="seismic.log")
 
 from datetime import datetime
 
@@ -14,8 +16,9 @@ class SeismicSensor:
             by_id = glob.glob('/dev/serial/by-id/*')
             if by_id:
                 self.port = by_id[0]
-                print(f"[INFO] Usando puerto sísmico: {self.port}")
+                # logger.info(f"[INFO] Usando puerto sísmico: {self.port}")
             else:
+                logger.error("No se encontró ningún dispositivo USB-Serial en /dev/serial/by-id/")
                 raise RuntimeError("No se encontró ningún dispositivo USB-Serial en /dev/serial/by-id/")
         else:
             self.port = port
@@ -62,7 +65,7 @@ class SeismicSensor:
                 if line and self.callback:
                     self.callback(line)
             except Exception as e:
-                print(f"[WARN] Error leyendo sensor sísmico: {e}")
+                logger.error(f"Error leyendo sensor sísmico (read_loop): {e}")
 
     def stop(self):
         self._stop_event.set()
@@ -77,13 +80,11 @@ class SeismicSensor:
             self.ser = serial.Serial(self.port, self.baudrate, timeout=1)
         try:
             line = self.ser.readline().decode(errors='ignore').strip()
-            if line:
-                print(f"[SEISMIC] Dato crudo recibido: {line}")
-            else:
-                print("[SEISMIC] No se recibió dato sísmico")
+            if not line:
+                logger.warning("No se recibió dato sísmico")
             return line
         except Exception as e:
-            print(f"[WARN] Error leyendo sensor sísmico (acquire): {e}")
+            logger.error(f"Error leyendo sensor sísmico (acquire): {e}")
             return None
 
     def process(self, raw, fecha, tiempo, latitud=None, longitud=None, altura=None, voltage=None):

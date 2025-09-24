@@ -29,17 +29,18 @@ class GPSManager:
     Manager for monitoring and handling GPS in a separate thread.
     Allows obtaining coordinates, altitude, satellite count, and synchronizing the system clock.
     """
-    def __init__(self, leds=None, logger=None, sync_interval_seconds=3600):
+    def __init__(self, leds=None, logger=None, sync_logger=None, sync_interval_seconds=3600):
         """
-        Inicializa el gestor de GPS con soporte opcional para LEDs y logger.
+        Inicializa el gestor de GPS con soporte opcional para LEDs y dos loggers (general y de sincronización).
         Permite configurar el intervalo de sincronización del reloj del sistema (por defecto 1 hora).
 
-        Initializes the GPS manager with optional support for LEDs and logger.
+        Initializes the GPS manager with optional support for LEDs and two loggers (general and sync).
         Allows configuring the system clock sync interval (default 1 hour).
         """
         self.gps = GPSReader(port=GPS_PORT, baudrate=GPS_BAUDRATE, timeout=GPS_TIMEOUT)
         self.leds = leds
         self.logger = logger
+        self.sync_logger = sync_logger
 
         self.gps_status = "NO_FIX"
         self.has_synced_time = False
@@ -116,11 +117,7 @@ class GPSManager:
                     do_sync = True
                 # Solo sincronizar si ha pasado el intervalo configurado
                 if do_sync and (now - self.last_sync_time) >= self.sync_interval_seconds:
-                    if sync_system_clock(utc_time, logger=self.logger):
-                        if self.logger:
-                            # msg = f"Time Sync: {utc_time}"
-                            # self.logger.info(msg)
-                            pass
+                    if sync_system_clock(utc_time, logger=self.sync_logger):
                         self.has_synced_time = True
                         self.last_sync_time = now
                     last_lost_fix_time = None
@@ -136,7 +133,7 @@ class GPSManager:
                 # Siempre mostrar el mensaje de FIX cuando hay posición válida
                 # Always show FIX message when position is valid
                 if self.logger:
-                    msg = f"Fix: Sats: {sats} | Pos: {lat:.5f} | {lon:.5f} | Alt: {alt:.1f}m"
+                    msg = f"Fix: Sats: {sats} | Pos: {lat:.5f} | {lon:.5f} | Alt: {alt:.1f} m"
                     self.logger.info(msg)
                 if self.gps_status != "FIX":
                     self.gps_status = "FIX"

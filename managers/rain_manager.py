@@ -23,7 +23,7 @@ class RainManager:
             time.sleep(wait_seconds)
 
     def run(self):
-        self.wait_until_next_minute()  # Espera hasta el próximo minuto exacto
+        next_time = time.time()
         while True:
             # 1. Adquisición del dato crudo
             nivel = self.sensor.acquire()
@@ -64,8 +64,16 @@ class RainManager:
                 "BATERIA": battery
             }
             # 5. Log y almacenamiento
-            rain_msg = f"Nivel: {raw['NIVEL']} m"
+            rain_msg = f"Nivel: {raw['NIVEL']} mm"
             self.logger.info(rain_msg)
             self.storage.add_data(raw)
+            # Reiniciar acumulado para el siguiente intervalo
+            try:
+                self.sensor.reset()
+            except Exception:
+                pass
             self.logger.info(f"Datos lluvia guardados")
-            time.sleep(self.interval)
+            # Calcular el tiempo hasta el próximo ciclo
+            next_time += self.interval
+            sleep_time = max(0, next_time - time.time())
+            time.sleep(sleep_time)

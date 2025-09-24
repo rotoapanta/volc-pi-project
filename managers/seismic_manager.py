@@ -26,8 +26,9 @@ class SeismicManager:
             time.sleep(wait_seconds)
 
     def run(self):
-        self.wait_until_next_minute()  # Espera hasta el próximo minuto exacto
+        next_time = time.time()
         while True:
+            start_time = time.time()
             # 1. Adquisición del dato crudo
             raw = self.sensor.acquire()
             # 2. Obtener datos de GPS
@@ -75,4 +76,7 @@ class SeismicManager:
                     self.logger.info(seismic_msg)
                     self.storage.add_data(raw_dict)
                     self.logger.info(f"Datos sísmicos guardados")
-            time.sleep(self.interval)
+            # Calcular el tiempo hasta el próximo ciclo
+            next_time += self.interval
+            sleep_time = max(0, next_time - time.time())
+            time.sleep(sleep_time)

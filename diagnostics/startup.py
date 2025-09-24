@@ -23,9 +23,10 @@ def startup_diagnostics(leds, logger=None):
     if logger is None:
         from utils.log_utils import setup_logger
         logger = setup_logger("startup")
-    # Inicializa el logger dedicado para sincronización de hora
+    # Inicializa los loggers dedicados para GPS y sincronización de hora
     from utils.log_utils import setup_logger as setup_sync_logger
-    setup_sync_logger("sync", log_file="sync.log")
+    gps_logger = setup_sync_logger("gps", log_file="gps.log")
+    sync_logger = setup_sync_logger("sync", log_file="sync.log")
 
     logger.info("==================== INICIALIZACIÓN DEL SISTEMA ====================")
     # Mensaje de estación activa
@@ -76,7 +77,7 @@ def startup_diagnostics(leds, logger=None):
     try:
         from config import GPS_PORT, GPS_BAUDRATE, GPS_SYNC_INTERVAL_SECONDS
         from managers.gps_manager import GPSManager
-        gps_manager = GPSManager(leds=leds, logger=logger, sync_interval_seconds=GPS_SYNC_INTERVAL_SECONDS)
+        gps_manager = GPSManager(leds=leds, logger=gps_logger, sync_logger=sync_logger, sync_interval_seconds=GPS_SYNC_INTERVAL_SECONDS)
         gps_manager.start()
         gps_port_short = os.path.basename(GPS_PORT)
         logger.info(

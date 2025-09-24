@@ -18,10 +18,15 @@ def parse_nmea_sentence(nmea_sentence):
 def extract_coordinates(nmea_msg):
     """
     Extrae latitud y longitud de una sentencia NMEA válida.
-    Retorna (lat, lon) en decimal o None si no aplica.
+    Retorna (lat, lon) en decimal o None si no aplica o si hay error de formato.
     """
-    if hasattr(nmea_msg, 'latitude') and hasattr(nmea_msg, 'longitude'):
-        return round(nmea_msg.latitude, 6), round(nmea_msg.longitude, 6)
+    try:
+        lat = getattr(nmea_msg, 'latitude', None)
+        lon = getattr(nmea_msg, 'longitude', None)
+        if lat is not None and lon is not None:
+            return round(lat, 6), round(lon, 6)
+    except Exception as e:
+        print(f"[ERROR][GPS] Error extrayendo coordenadas: {e} | Mensaje: {nmea_msg}")
     return None
 
 def extract_altitude(nmea_msg):
