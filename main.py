@@ -101,37 +101,50 @@ for t in threads:
 import time
 from utils.storage.migrate_to_usb import migrate_internal_to_usb
 
-def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, leds, check_interval=5):
+def usb_hotplug_monitor(seismic_storage, pluvi_storage, logger, internal_dir, leds, check_interval=5, disconnect_threshold=3):
     usb_connected = False
     last_usb_path = None
+    failure_count = 0
     while True:
         usb_path = find_mounted_usb()
-        if usb_path and not usb_connected:
-            # USB conectada
-            output_dir = os.path.join(usb_path, "DTA")
-            logger.info(f"Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
-            seismic_storage.set_output_dir(output_dir)
-            pluvi_storage.set_output_dir(output_dir)
-            logger.info(f"Ruta de almacenamiento cambiada a: {output_dir}")
-            # Migrar archivos pendientes
-            files_migrated = migrate_internal_to_usb(internal_dir, output_dir, logger)
-            logger.info(f"Migración completada. Archivos migrados: {files_migrated}")
-            # Apagar LED MEDIA (USB presente)
-            if leds:
-                leds.set("MEDIA", False)
-            usb_connected = True
-            last_usb_path = usb_path
-        elif not usb_path and usb_connected:
-            # USB desconectada
-            logger.warning("Memoria USB desconectada. Volviendo a almacenamiento interno.")
-            seismic_storage.set_output_dir(internal_dir)
-            pluvi_storage.set_output_dir(internal_dir)
-            logger.info(f"Ruta de almacenamiento cambiada a: {internal_dir}")
-            # Encender LED MEDIA (USB ausente)
-            if leds:
-                leds.set("MEDIA", True)
-            usb_connected = False
-            last_usb_path = None
+        if usb_path:
+            # Conexión nueva o cambio de ruta
+            if not usb_connected or (last_usb_path and usb_path != last_usb_path):
+                output_dir = os.path.join(usb_path, "DTA")
+                logger.info(f"Memoria USB detectada: {output_dir}. Cambiando almacenamiento y migrando datos...")
+                seismic_storage.set_output_dir(output_dir)
+                pluvi_storage.set_output_dir(output_dir)
+                logger.info(f"Ruta de almacenamiento cambiada a: {output_dir}")
+                # Migrar archivos pendientes
+                files_migrated = migrate_internal_to_usb(internal_dir, output_dir, logger)
+                logger.info(f"Migración completada. Archivos migrados: {files_migrated}")
+                # Apagar LED MEDIA (USB presente)
+                if leds:
+                    leds.set("MEDIA", False)
+                usb_connected = True
+                last_usb_path = usb_path
+            # Resetear contador de fallos si la USB está presente
+            failure_count = 0
+        else:
+            # Evitar falsos negativos: si la última ruta sigue montada, mantenemos la conexión
+            still_mounted = bool(last_usb_path) and os.path.ismount(last_usb_path)
+            if usb_connected and still_mounted:
+                logger.debug(f"USB aparentemente ausente en escaneo, pero {last_usb_path} sigue montada. Manteniendo conexión.")
+                failure_count = 0
+            elif usb_connected:
+                failure_count += 1
+                if failure_count >= disconnect_threshold:
+                    logger.warning("Memoria USB desconectada. Volviendo a almacenamiento interno.")
+                    seismic_storage.set_output_dir(internal_dir)
+                    pluvi_storage.set_output_dir(internal_dir)
+                    logger.info(f"Ruta de almacenamiento cambiada a: {internal_dir}")
+                    # Encender LED MEDIA (USB ausente)
+                    if leds:
+                        leds.set("MEDIA", True)
+                    usb_connected = False
+                    last_usb_path = None
+                    failure_count = 0
+            # Si no está conectada, no hacer nada más
         time.sleep(check_interval)
 
 # Lanzar el monitor en un hilo aparte
