@@ -12,6 +12,20 @@ def _sha256(path):
     return h.hexdigest()
 
 
+def _remove_empty_dirs(root_dir, logger):
+    removed = 0
+    for current_root, dirs, files in os.walk(root_dir, topdown=False):
+        if current_root == root_dir:
+            continue
+        try:
+            if not os.listdir(current_root):
+                os.rmdir(current_root)
+                removed += 1
+        except Exception as e:
+            logger.warning(f"No se pudo eliminar directorio vacío {current_root}: {e}")
+    return removed
+
+
 def migrate_internal_to_usb(internal_dir, usb_dir, logger=None):
     """
     Migra archivos de internal_dir a usb_dir preservando estructura.
@@ -67,4 +81,11 @@ def migrate_internal_to_usb(internal_dir, usb_dir, logger=None):
             except Exception as e:
                 logger.error(f"No se pudo mover {src_file} -> {dest_file}: {e}")
     logger.info(f"Total migrados: {files_migrated} | duplicados omitidos: {files_duplicates} | conflictos: {files_conflicts}")
+    # Limpieza de directorios vacíos en almacenamiento interno (mantiene la raíz)
+    try:
+        removed_dirs = _remove_empty_dirs(internal_dir, logger)
+        if removed_dirs:
+            logger.info(f"Directorios vacíos eliminados en {internal_dir}: {removed_dirs}")
+    except Exception as e:
+        logger.warning(f"Error durante la limpieza de directorios vacíos en {internal_dir}: {e}")
     return files_migrated
