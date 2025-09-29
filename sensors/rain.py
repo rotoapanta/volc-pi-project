@@ -45,8 +45,7 @@ class RainSensor(BaseSensor):
             self.accumulated += 0.25  # mm por basculamiento
             tips = self.tips
             accumulated = self.accumulated
-        timestamp = time.strftime("%Y-%m-%d %H:%M:%S")
-        msg = f"[PLUVIOMETER] TIME={timestamp} TIPS={tips:02d} ACCUMULATED_RAIN={accumulated:.2f}mm"
+        msg = f"Tips: {tips:02d} | Lluvia acumulada: {accumulated:.2f}mm"
         if self.logger:
             self.logger.info(msg)
 
