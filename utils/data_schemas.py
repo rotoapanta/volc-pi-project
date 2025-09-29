@@ -1,10 +1,11 @@
 def seismic_schema(now, data):
     return {
         "FECHA": now.strftime("%Y-%m-%d"),
-        "TIEMPO": now.strftime("%H:%M:00"),
+        "TIEMPO": now.strftime("%H:%M:%S"),
         "LATITUD": data.get("LATITUD"),
         "LONGITUD": data.get("LONGITUD"),
         "ALTURA": data.get("ALTURA"),
+        "ALERTA": data.get("ALERTA"),
         "PASA_BANDA": data.get("PASA_BANDA"),
         "PASA_BAJO": data.get("PASA_BAJO"),
         "PASA_ALTO": data.get("PASA_ALTO"),

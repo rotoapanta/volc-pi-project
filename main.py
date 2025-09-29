@@ -92,7 +92,7 @@ rain_manager = RainManager(rain_config, logger, pluvi_storage)
 # ------------------- Lanzamiento de hilos de sensores -------------------
 
 threads = []
-threads.append(threading.Thread(target=seismic_manager.run, daemon=True))
+threads.append(threading.Thread(target=seismic_manager.run_event_driven, daemon=True))
 threads.append(threading.Thread(target=rain_manager.run, daemon=True))
 for t in threads:
     t.start()

@@ -1,6 +1,7 @@
 import os
 import json
 import threading
+import time
 from datetime import datetime
 from utils.log_utils import setup_logger
 
@@ -24,6 +25,9 @@ class BlockStorage:
         self.extractor_func = extractor_func
         self.data_accumulator = {}
         self._lock = threading.RLock()
+        # Buffer de escritura para reducir desgaste: escribe cada N segundos
+        self.write_interval_seconds = 10  # configurable
+        self._last_write_ts = 0.0
 
     def get_block_start(self, dt):
         if self.block_type == 'hour':
@@ -40,8 +44,11 @@ class BlockStorage:
             block_start = self.get_block_start(now)
             # Guardar el dato crudo relevante (sin loguear en logger)
             if self.current_block and self.current_block != block_start:
+                # Forzar guardado del bloque anterior antes de cambiar
                 self.save_block_file(self.current_block, self.block_data)
                 self.block_data = []
+                # Reiniciar temporizador de escritura para el nuevo bloque
+                self._last_write_ts = time.time()
             self.current_block = block_start
             # Usar extractor_func si está definido, si no, guardar raw como está
             if self.extractor_func:
@@ -60,10 +67,42 @@ class BlockStorage:
                     self.block_data[idx] = data  # Sobrescribe la lectura previa de ese bloque
                 else:
                     self.block_data.append(data)
-                # Guardar en disco en tiempo real
-                self.save_block_file(self.current_block, self.block_data)
+                # Guardar en disco solo si pasó el intervalo configurado
+                now_ts = time.time()
+                if (now_ts - self._last_write_ts) >= self.write_interval_seconds:
+                    self.save_block_file(self.current_block, self.block_data)
+                    self._last_write_ts = now_ts
         finally:
             self._lock.release()
+
+    def _load_existing_block(self, filename):
+        """Carga un archivo de bloque existente y devuelve su contenido o estructura vacía.
+        Si el archivo está corrupto, intenta recuperar LECTURAS válidas línea por línea (best-effort)."""
+        try:
+            if os.path.exists(filename):
+                with open(filename, 'r') as f:
+                    return json.load(f)
+        except json.JSONDecodeError:
+            # Intento best-effort: buscar un objeto JSON válido por líneas
+            try:
+                with open(filename, 'r') as f:
+                    content = f.read()
+                # Estrategia simple: intentar encontrar el último cierre de array
+                last = content.rfind(']')
+                if last != -1:
+                    partial = content[:last+1]
+                    # Reconstruir envoltura mínima
+                    return {
+                        "TIPO": self.tipo,
+                        "NOMBRE": self.station_name,
+                        "IDENTIFICADOR": self.identifier,
+                        "LECTURAS": json.loads(partial)
+                    }
+            except Exception:
+                pass
+        except Exception:
+            pass
+        return self.create_empty_structure()
 
     def save_block_file(self, block_start, data):
         self._lock.acquire()
@@ -88,6 +127,11 @@ class BlockStorage:
                 output_dir,
                 f"EC.{self.station_name}.{self.tipo}_{self.model}_{self.serial_number}_{date_part}_{hour_part}.json"
             )
+            # Intentar cargar existente y validar estructura básica
+            existing = self._load_existing_block(filename)
+            if "LECTURAS" not in existing or not isinstance(existing.get("LECTURAS"), list):
+                existing = self.create_empty_structure()
+            # Reemplazar con el estado actual en memoria (diseño actual: última lectura por sub‑intervalo)
             file_data = {
                 "TIPO": self.tipo,
                 "NOMBRE": self.station_name,
@@ -115,7 +159,8 @@ class BlockStorage:
         try:
             if self.block_data:
                 self.save_block_file(self.current_block, self.block_data)
-                self.block_data = []
+                # No vaciar block_data aquí; se mantiene en memoria para continuidad del bloque
+                self._last_write_ts = time.time()
         finally:
             self._lock.release()
 
@@ -213,3 +258,15 @@ class BlockStorage:
             self.flush()
         finally:
             self._lock.release()
+
+    def set_write_interval(self, seconds: int):
+        """Configura el intervalo de escritura en segundos (buffer de escritura)."""
+        with self._lock:
+            if seconds < 0:
+                seconds = 0
+            self.write_interval_seconds = seconds
+            self._last_write_ts = time.time()
+            try:
+                self.logger.info(f"Intervalo de escritura configurado: {seconds} s")
+            except Exception:
+                pass

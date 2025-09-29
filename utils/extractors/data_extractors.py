@@ -2,25 +2,30 @@ from datetime import datetime
 from utils.data_schemas import seismic_schema, rain_schema, gps_schema, battery_schema
 
 def extract_seismic(raw, now: datetime, lat=None, lon=None, alt=None):
-    # Si raw es dict, tomar los valores directamente
+    # Si raw es dict, tomar los valores directamente (incluye ST/ALERTA si vienen)
     if isinstance(raw, dict):
         data = {
             "LATITUD": raw.get("LATITUD", lat),
             "LONGITUD": raw.get("LONGITUD", lon),
             "ALTURA": raw.get("ALTURA", alt),
+            "ALERTA": raw.get("ALERTA"),
             "PASA_BANDA": raw.get("PASA_BANDA"),
             "PASA_BAJO": raw.get("PASA_BAJO"),
             "PASA_ALTO": raw.get("PASA_ALTO"),
             "BATERIA": raw.get("BATERIA")
         }
         return seismic_schema(now, data)
-    # Si raw es string, parsear como antes
+    # Si raw es string, intentar extraer ST y PASA_*
     parts = raw.strip().split()
     if len(parts) >= 4:
+        st = parts[0].replace('+', '')
+        st = f"{int(st):03d}" if st.isdigit() else None
+        alerta = (st is not None and st[0] == '1')
         data = {
             "LATITUD": lat if lat is not None else None,
             "LONGITUD": lon if lon is not None else None,
             "ALTURA": alt if alt is not None else None,
+            "ALERTA": alerta,
             "PASA_BANDA": parts[1].replace('+', ''),
             "PASA_BAJO": parts[2].replace('+', ''),
             "PASA_ALTO": parts[3].replace('+', ''),

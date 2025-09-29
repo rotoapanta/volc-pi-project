@@ -3,10 +3,9 @@ import time
 
 # Diccionario de LEDs y sus GPIOs según tu configuración
 led_pins = {
-    "ETH": 16,
+    "ETH": 5,
     "WIFI": 27,
-    "VOLTAGE": 6,
-    "MEDIA": 25
+    "VOLTAGE": 26
 }
 
 try:

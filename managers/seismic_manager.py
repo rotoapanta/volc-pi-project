@@ -148,7 +148,18 @@ class SeismicManager:
                     # Unificar fuente de batería: solo usar ADC (BatteryMonitor)
                     bat_v = battery
 
+                    # ST/ALERTA se derivan del primer campo (st)
+                    st_str = None
+                    alerta = None
+                    try:
+                        st_val = int(raw.strip().split()[0].replace('+', ''))
+                        st_str = f"{st_val:03d}"
+                        alerta = (st_str[0] == '1')
+                    except Exception:
+                        pass
+
                     raw_dict = {
+                        "ALERTA": alerta,
                         "PASA_BANDA": f"{parsed['pasa_banda']:04d}",
                         "PASA_BAJO": f"{parsed['pasa_bajo']:04d}",
                         "PASA_ALTO": f"{parsed['pasa_alto']:04d}",
@@ -159,6 +170,7 @@ class SeismicManager:
                     }
 
                     seismic_msg = (
+                        f"ALERTA: {raw_dict['ALERTA']} | "
                         f"Pasa Banda: {raw_dict['PASA_BANDA']} | "
                         f"Pasa Bajo: {raw_dict['PASA_BAJO']} | "
                         f"Pasa Alto: {raw_dict['PASA_ALTO']}"
@@ -171,3 +183,82 @@ class SeismicManager:
             next_time += self.interval
             sleep_time = max(0, next_time - time.time())
             time.sleep(sleep_time)
+
+    def run_event_driven(self):
+        """
+        Modo orientado a eventos: guarda cuando llegue un frame del dispositivo.
+        No usa bucle con temporizador; delega la lectura al hilo interno del sensor.
+        """
+        def on_line(raw):
+            # Obtener datos de GPS (opcional)
+            gps_data = {"LATITUD": None, "LONGITUD": None, "ALTURA": None}
+            try:
+                from managers.gps_manager import get_last_gps_data
+                gps = get_last_gps_data()
+                gps_data["LATITUD"] = gps.get("lat")
+                gps_data["LONGITUD"] = gps.get("lon")
+                gps_data["ALTURA"] = gps.get("alt")
+                if self.logger:
+                    if gps_data['LATITUD'] is None or gps_data['LONGITUD'] is None or gps_data['ALTURA'] is None:
+                        self.logger.info("Dato GPS no válido en seismic_manager (lat/lon/alt None)")
+                    else:
+                        msg = (
+                            f"Dato GPS recibido en seismic_manager: lat: {gps_data['LATITUD']} | "
+                            f"lon: {gps_data['LONGITUD']} | alt: {gps_data['ALTURA']}"
+                        )
+                        self.logger.info(msg)
+            except Exception:
+                pass
+
+            # Voltaje batería (ADC)
+            battery = None
+            try:
+                from utils.sensors.battery_utils import BatteryMonitor
+                battery_monitor = BatteryMonitor()
+                battery_info = battery_monitor.read_all()
+                battery_monitor.close()
+                battery = battery_info["voltage"]
+            except Exception:
+                battery = None
+
+            # Validar y construir dict
+            if raw:
+                parsed = self._parse_and_validate(raw)
+                if parsed is None:
+                    return
+                bat_v = battery
+                # ST/ALERTA desde primer campo del raw
+                st_str = None
+                alerta = None
+                try:
+                    st_val = int(raw.strip().split()[0].replace('+', ''))
+                    st_str = f"{st_val:03d}"
+                    alerta = (st_str[0] == '1')
+                except Exception:
+                    pass
+                raw_dict = {
+                    "ALERTA": alerta,
+                    "PASA_BANDA": f"{parsed['pasa_banda']:04d}",
+                    "PASA_BAJO": f"{parsed['pasa_bajo']:04d}",
+                    "PASA_ALTO": f"{parsed['pasa_alto']:04d}",
+                    "LATITUD": gps_data["LATITUD"],
+                    "LONGITUD": gps_data["LONGITUD"],
+                    "ALTURA": gps_data["ALTURA"],
+                    "BATERIA": bat_v,
+                }
+                seismic_msg = (
+                    f"ALERTA: {raw_dict['ALERTA']} | "
+                    f"Pasa Banda: {raw_dict['PASA_BANDA']} | "
+                    f"Pasa Bajo: {raw_dict['PASA_BAJO']} | "
+                    f"Pasa Alto: {raw_dict['PASA_ALTO']}"
+                )
+                self.logger.info(seismic_msg)
+                self.storage.add_data(raw_dict)
+                self.logger.info("Datos sísmicos guardados (event-driven)")
+
+        # Conectar callback y arrancar hilo lector del sensor
+        self.sensor.callback = on_line
+        self.sensor.start()
+        # Mantener este hilo vivo mientras el hilo del sensor procesa eventos
+        while True:
+            time.sleep(0.5)

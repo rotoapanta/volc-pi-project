@@ -13,25 +13,28 @@ def parse_seismic_message(msg, fecha, tiempo, latitud=None, longitud=None, altur
     if msg.startswith("[SEISMIC]"):
         msg = msg.replace("[SEISMIC]", "").strip()
     parts = msg.split()
-    if len(parts) < 6:
+    if len(parts) < 4:
         return None
     st = parts[0]
     pasa_banda = parts[1]
     pasa_bajo = parts[2]
     pasa_alto = parts[3]
-    bateria = parts[4]
-    cks = parts[5]
+    bateria = parts[4] if len(parts) >= 5 else None
     try:
-        st_num = int(st)
-        pasa_banda_raw = int(pasa_banda)
-        pasa_bajo_raw = int(pasa_bajo)
-        pasa_alto_raw = int(pasa_alto)
-        bateria_raw = int(bateria)
+        st_num = int(st.replace('+', ''))
+        pasa_banda_raw = int(pasa_banda.replace('+', ''))
+        pasa_bajo_raw = int(pasa_bajo.replace('+', ''))
+        pasa_alto_raw = int(pasa_alto.replace('+', ''))
+        if bateria is not None:
+            _ = int(str(bateria).replace('+', ''))  # validar si viene, pero no se usa
     except Exception:
         return None
+    st_str = f"{st_num:03d}"
+    alerta = st_str[0] == '1'
     result = {
         "FECHA": fecha,
         "TIEMPO": tiempo,
+        "ALERTA": alerta,
         "PASA_BANDA": f"{pasa_banda_raw:04d}",
         "PASA_BAJO": f"{pasa_bajo_raw:04d}",
         "PASA_ALTO": f"{pasa_alto_raw:04d}"
@@ -49,6 +52,7 @@ def parse_seismic_message(msg, fecha, tiempo, latitud=None, longitud=None, altur
         result["BATERIA"] = None
     ordered_keys = [
         "FECHA", "TIEMPO", "LATITUD", "LONGITUD", "ALTURA",
+        "ALERTA",
         "PASA_BANDA", "PASA_BAJO", "PASA_ALTO", "BATERIA"
     ]
     ordered_result = {k: result[k] for k in ordered_keys if k in result}
