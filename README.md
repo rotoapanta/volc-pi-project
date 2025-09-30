@@ -82,6 +82,120 @@ Para máxima robustez, usa el symlink persistente de `/dev/serial/by-id/` para c
 4. El log detallado se encuentra en `logs/rain_monitor.log`.
 5. Los datos sísmicos se registran en el log con el prefijo `[SEISMIC]`.
 
+## Servicio systemd (arranque automático)
+
+Este proyecto incluye un servicio systemd para ejecutar la estación automáticamente al iniciar el sistema.
+
+- Archivo de unidad: `rain-monitor.service` (en la raíz del repo)
+- Punto de entrada: `main.py`
+- Usuario: `pi`
+- Directorio de trabajo: `/home/pi/Documents/Projects/rain-gauge-project`
+
+### Instalación rápida
+
+```bash
+# Copia el archivo de servicio al directorio de systemd
+sudo cp /home/pi/Documents/Projects/rain-gauge-project/rain-monitor.service /etc/systemd/system/rain-monitor.service
+
+# Recarga systemd, habilita y arranca el servicio
+sudo systemctl daemon-reload
+sudo systemctl enable --now rain-monitor.service
+```
+
+### Logs y estado
+
+```bash
+# Estado del servicio
+systemctl status --no-pager rain-monitor.service
+
+# Logs en tiempo real
+journalctl -u rain-monitor.service -f -n 200
+```
+
+Los logs rotativos por archivo se guardan además en el directorio `./logs/` del proyecto.
+
+### Comandos útiles de administración del servicio
+
+```bash
+# Iniciar / Detener / Reiniciar
+sudo systemctl start rain-monitor.service
+sudo systemctl stop rain-monitor.service
+sudo systemctl restart rain-monitor.service
+
+# Estado e información
+systemctl status --no-pager rain-monitor.service
+systemctl is-active rain-monitor.service
+systemctl is-enabled rain-monitor.service
+
+# Habilitar / Deshabilitar en el arranque
+sudo systemctl enable rain-monitor.service
+sudo systemctl disable rain-monitor.service
+
+# Recargar definición del servicio tras editar el archivo .service
+sudo systemctl daemon-reload
+
+# Logs
+journalctl -u rain-monitor.service -n 200 --no-pager
+journalctl -u rain-monitor.service -f
+```
+
+### Actualizar el servicio tras cambios
+Si editas `rain-monitor.service` o `main.py` y quieres aplicar los cambios:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart rain-monitor.service
+```
+
+### Requisitos del sistema (permisos y paquetes)
+
+- Paquetes (Debian/Raspberry Pi OS):
+  ```bash
+  sudo apt-get update
+  sudo apt-get install -y python3 python3-pip python3-serial python3-lgpio python3-smbus2 python3-pynmea2 i2c-tools
+  ```
+- Grupos (para acceso a GPIO/I2C/Serial):
+  ```bash
+  sudo usermod -aG gpio,i2c,dialout pi
+  sudo reboot
+  ```
+- Habilitar I2C si no lo está (raspi-config o equivalente).
+
+> Nota sobre GPIO: la unidad trae capacidades CAP_SYS_RAWIO por compatibilidad. Si el usuario `pi` pertenece a `gpio`, puedes eliminar esas capacidades del unit para seguir el principio de mínimos privilegios.
+
+### Sincronización horaria por GPS (opcional pero recomendado)
+El código sincroniza la hora del sistema con el GPS ejecutando `sudo date -u --set ...`. Para que funcione de forma no interactiva:
+
+- Opción A (recomendada): permitir `date` sin contraseña para `pi`.
+  ```bash
+  sudo visudo -f /etc/sudoers.d/rain-gauge
+  # Añadir esta línea y guardar:
+  # pi ALL=(root) NOPASSWD: /bin/date
+  ```
+- Opción B: quitar "sudo" en el código y otorgar capacidad de tiempo al servicio.
+  - Editar el unit para incluir:
+    ```ini
+    AmbientCapabilities=CAP_SYS_TIME
+    CapabilityBoundingSet=CAP_SYS_TIME
+    ```
+  - Requiere que la llamada use `/bin/date` sin `sudo`.
+
+### Robustez de arranque (opcional)
+- Asegurar que udev haya creado los dispositivos seriales antes de arrancar:
+  ```ini
+  ExecStartPre=/usr/bin/udevadm settle
+  ```
+- El unit ya incluye `ExecStartPre=/bin/sleep 3` para dar tiempo a hardware/OS.
+- El almacenamiento USB se detecta en `/media/pi/...`. En sistemas headless sin automontaje, configura un automount o fstab si necesitas montaje al arranque.
+
+### Desinstalación
+
+```bash
+sudo systemctl disable --now rain-monitor.service
+sudo rm /etc/systemd/system/rain-monitor.service
+sudo systemctl daemon-reload
+```
+
 ## Estructura del proyecto
 
 ```

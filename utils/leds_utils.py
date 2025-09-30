@@ -24,6 +24,7 @@ class LEDManager:
         self.blink_threads = {}
         self.heartbeat_active = True
         self.heartbeat_thread = None
+        self._cleaned = False
         for pin in self.led_pins.values():
             try:
                 try:
@@ -183,17 +184,33 @@ class LEDManager:
             logger.warning("LED 'WIFI' no está definido.")
 
     def cleanup(self):
+        # Evitar limpieza doble o uso de handle cerrado
+        if getattr(self, "_cleaned", False) or getattr(self, "chip", None) is None:
+            return
+        self._cleaned = True
+
+        # Detener hilos de latido y blinker antes de liberar GPIO
         self.stop_heartbeat()
+        try:
+            for pin in list(self.blink_threads.keys()):
+                self._stop_blinker(pin)
+        except Exception:
+            pass
+
+        # Apagar LEDs y liberar líneas
         for pin in self.led_pins.values():
             try:
                 lgpio.gpio_write(self.chip, pin, 0)
-                try:
-                    lgpio.gpio_free(self.chip, pin)
-                except Exception:
-                    pass
-            except Exception as e:
-                logger.warning(f"No se pudo limpiar GPIO {pin}: {e}")
+            except Exception:
+                # Evitar warnings ruidosos durante apagado si el handle ya no es válido
+                pass
+            try:
+                lgpio.gpio_free(self.chip, pin)
+            except Exception:
+                pass
+        # Cerrar el chip y anular referencia
         try:
             lgpio.gpiochip_close(self.chip)
         except Exception:
             pass
+        self.chip = None
