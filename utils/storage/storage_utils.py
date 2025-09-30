@@ -50,11 +50,13 @@ def get_storage_base():
     else:
         return INTERNAL_BACKUP_DIR
 
-def get_dta_path(date_str):
-    """Construye y asegura la ruta para guardar datos de lluvia según la fecha."""
+def get_dta_path(date_str, tipo_folder=None):
+    """Construye y asegura la ruta para guardar datos según la fecha y tipo opcional (RGA/SIS)."""
     year, month, day = date_str.split('-')
     base = get_storage_base()
     path = os.path.join(base, "DTA", year, month, day)
+    if tipo_folder:
+        path = os.path.join(path, str(tipo_folder))
     try:
         os.makedirs(path, exist_ok=True)
         logger.debug(f"Ruta de almacenamiento creada/verificada: {path}")

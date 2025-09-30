@@ -70,26 +70,74 @@ class SeismicSensor:
         # Eliminado: el guardado ahora lo gestiona BlockStorage desde el manager
 
     def start(self):
-        self._open_serial()
+        # Evitar múltiples hilos de lectura
+        if getattr(self, "_thread", None) and self._thread.is_alive():
+            return
         self._stop_event.clear()
+        try:
+            self._open_serial()
+        except Exception:
+            # Se reintentará en el bucle de lectura con backoff
+            pass
         self._thread = threading.Thread(target=self._read_loop, daemon=True)
         self._thread.start()
 
     def _read_loop(self):
+        """Hilo lector con reconexión robusta y backoff en caso de error."""
+        delay = self.read_delay
         while not self._stop_event.is_set():
+            # Asegurar que el puerto está abierto
+            if self.ser is None or not getattr(self.ser, "is_open", False):
+                try:
+                    self._open_serial()
+                    delay = self.read_delay  # reset backoff al reconectar
+                except Exception as e:
+                    logger.error(f"Error abriendo puerto sísmico en read_loop: {e}")
+                    time.sleep(delay)
+                    delay = min(delay * self.backoff_factor, self.max_backoff)
+                    continue
             try:
-                line = self.ser.readline().decode(errors='ignore').strip()
+                line_bytes = self.ser.readline()
+                if not line_bytes:
+                    # Sin datos; espera corta para no saturar CPU
+                    time.sleep(0.05)
+                    continue
+                try:
+                    line = line_bytes.decode('utf-8', errors='ignore').strip()
+                except Exception:
+                    line = str(line_bytes, errors='ignore').strip()
                 if line and self.callback:
                     self.callback(line)
+                # Datos leídos correctamente -> resetear backoff
+                delay = self.read_delay
+            except serial.SerialException as e:
+                # Error típico: dispositivo desconectado o acceso múltiple
+                logger.error(f"Error leyendo sensor sísmico (read_loop): {e}")
+                # Intentar cerrar y reabrir con backoff
+                try:
+                    if self.ser:
+                        self.ser.close()
+                except Exception:
+                    pass
+                self.ser = None
+                time.sleep(delay)
+                delay = min(delay * self.backoff_factor, self.max_backoff)
+                continue
             except Exception as e:
                 logger.error(f"Error leyendo sensor sísmico (read_loop): {e}")
+                time.sleep(0.1)
+                continue
 
     def stop(self):
         self._stop_event.set()
         if self._thread:
             self._thread.join(timeout=1)
-        if self.ser:
-            self.ser.close()
+        try:
+            if self.ser and getattr(self.ser, "is_open", False):
+                self.ser.close()
+        except Exception:
+            pass
+        self.ser = None
 
     def acquire(self):
         """Lee una línea del sensor sísmico con reintentos y reconexión si es necesario."""

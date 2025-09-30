@@ -117,11 +117,15 @@ class BlockStorage:
             else:
                 date_part = block_start.strftime("%Y%m%d")
                 hour_part = block_start.strftime("%H%M")
-            # Crea subcarpetas por año/mes/día automáticamente
+            # Crea subcarpetas por año/mes/día y tipo (RGA/SIS) automáticamente
             year = block_start.strftime("%Y")
             month = block_start.strftime("%m")
             day = block_start.strftime("%d")
-            output_dir = os.path.join(self.output_dir, year, month, day)
+            tipo_folder = str(self.tipo).upper() if self.tipo else None
+            if tipo_folder:
+                output_dir = os.path.join(self.output_dir, year, month, day, tipo_folder)
+            else:
+                output_dir = os.path.join(self.output_dir, year, month, day)
             os.makedirs(output_dir, exist_ok=True)
             filename = os.path.join(
                 output_dir,
@@ -197,9 +201,9 @@ class BlockStorage:
                 date_str = entry["FECHA"]
                 time_str = entry["TIEMPO"]
                 hour_str = time_str[:2] + "00"
-                directory = get_dta_path(date_str)
+                tipo_sufijo = str(self.tipo).upper()
+                directory = get_dta_path(date_str, tipo_folder=tipo_sufijo)
                 file_date = date_str.replace("-", "")
-                tipo_sufijo = "SIS" if self.tipo.upper().startswith("SISM") else "RGA"
                 filename = os.path.join(directory, f"EC.{self.station_name}.{tipo_sufijo}_{self.model}_{self.serial_number}_{file_date}_{hour_str}.json")
 
                 if os.path.exists(filename):
