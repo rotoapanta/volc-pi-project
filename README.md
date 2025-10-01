@@ -1,4 +1,4 @@
-# Rain Gauge Project
+# VolcPi Project
 
 Sistema profesional de monitoreo de lluvia, telemetría ambiental y sismología basado en Raspberry Pi 5
 

@@ -126,6 +126,8 @@ class GPSManager:
                 try:
                     with open("last_gps.json", "w") as f:
                         json.dump({"lat": lat, "lon": lon, "alt": alt}, f)
+                    if self.logger:
+                        self.logger.info(f"last_gps.json actualizado | lat={lat} lon={lon} alt={alt}")
                 except Exception as e:
                     if self.logger:
                         self.logger.error(f"Error guardando last_gps.json: {e}")

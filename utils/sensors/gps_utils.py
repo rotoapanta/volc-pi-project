@@ -78,6 +78,10 @@ def sync_system_clock(utc_datetime, logger=None):
             print(msg)
         import subprocess
         subprocess.run(["sudo", "date", "-u", "--set", time_str], check=True, stdout=subprocess.DEVNULL)
+        if logger:
+            logger.info(f"Hora del sistema sincronizada correctamente: {time_str}")
+        else:
+            print(f"Hora del sistema sincronizada correctamente: {time_str}")
         return True
     except Exception as e:
         err_msg = f"No se pudo sincronizar la hora del sistema: {e}"
