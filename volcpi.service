@@ -1,10 +1,29 @@
-# Rainfall Monitoring Service (systemd unit)
-# [ES] Archivo de unidad para ejecutar la estación de monitoreo de lluvia al iniciar el sistema.
-# [EN] Systemd unit to run the rainfall monitoring station at system boot.
+# VolcPi Monitoring Service (systemd unit)
+# ES: Servicio systemd para iniciar la estación VolcPi al arranque.
+# EN: Systemd unit to start the VolcPi station at boot.
+#
+# File: /etc/systemd/system/volcpi.service
+# Project: VolcPi
+# Purpose: Monitoring of rain, seismic, GPS, battery and LEDs on Raspberry Pi.
+# ExecStart: /usr/bin/python3 -u /home/pi/Documents/Projects/volc-pi-project/main.py
+# WorkingDirectory: /home/pi/Documents/Projects/volc-pi-project
+# Devices: GPS + Seismic (serial by-id), GPIO, I2C
+# Requirements: python3, pyserial, lgpio, smbus2, pynmea2; groups: dialout,gpio,i2c
+#
+# Install:
+#   sudo cp /home/pi/Documents/Projects/volc-pi-project/volcpi.service /etc/systemd/system/volcpi.service
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now volcpi.service
+# Logs:
+#   sudo journalctl -u volcpi.service -f
+# Notes: If /dev/serial/by-id is not visible due to PrivateDevices, consider:
+#   BindReadOnlyPaths=/dev/serial/by-id  or set PrivateDevices=no
+# Last updated: 2025-10-01
 
 [Unit]
 # [ES] Asegura que la red esté completamente operativa (DHCP/resolución) antes de iniciar.
 # [EN] Ensures the network is fully up (DHCP/resolution) before starting.
+Description=Volc-Pi Monitoring Service
 After=network-online.target
 Wants=network-online.target
 
@@ -20,7 +39,7 @@ Group=pi
 
 # [ES] Directorio de trabajo del servicio (evita errores CHDIR).
 # [EN] Service working directory (prevents CHDIR errors).
-WorkingDirectory=/home/pi/Documents/Projects/rain-gauge-project
+WorkingDirectory=/home/pi/Documents/Projects/volc-pi-project
 
 # [ES] Salida sin búfer para logs en tiempo real vía journalctl.
 # [EN] Unbuffered output for real-time logs via journalctl.
@@ -32,10 +51,10 @@ Environment=PYTHONPATH=/usr/lib/python3/dist-packages
 
 # [ES] Comando principal de la aplicación. Ajusta si usas venv.
 # [EN] Main application command. Adjust if you use a virtualenv.
-ExecStart=/usr/bin/python3 -u /home/pi/Documents/Projects/rain-gauge-project/main.py
+ExecStart=/usr/bin/python3 -u /home/pi/Documents/Projects/volc-pi-project/main.py
 # [ES] Alternativa con virtualenv (descomenta y ajusta la ruta si corresponde):
 # [EN] Alternative using virtualenv (uncomment and adjust if applicable):
-# ExecStart=/home/pi/.venvs/rain/bin/python -u /home/pi/Documents/Projects/rain-gauge-project/main.py
+# ExecStart=/home/pi/.venvs/rain/bin/python -u /home/pi/Documents/Projects/volc-pi-project/main.py
 
 # [ES] Retraso breve para dar tiempo a dependencias de hardware/OS.
 # [EN] Short delay to allow hardware/OS dependencies to settle.
@@ -45,20 +64,6 @@ ExecStartPre=/bin/sleep 3
 # [EN] Restart policy in case of failure.
 Restart=always
 RestartSec=5
-
-# [ES] Capabilidades necesarias para acceso a GPIO (según placa/configuración).
-# [EN] Capabilities required for GPIO access (depending on board/config).
-PermissionsStartOnly=true
-CapabilityBoundingSet=CAP_SYS_RAWIO
-AmbientCapabilities=CAP_SYS_RAWIO
-
-# [ES] Endurecimiento sugerido (opcional). Descomentar si no rompe tu app.
-# [EN] Suggested hardening (optional). Uncomment if it doesn't break your app.
-# NoNewPrivileges=true
-# ProtectSystem=full
-# ProtectHome=true
-# PrivateTmp=true
-# RestrictSUIDSGID=true
 
 [Install]
 # [ES] Inicia en el objetivo multiusuario (arranque normal del sistema).
