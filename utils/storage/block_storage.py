@@ -257,7 +257,7 @@ class BlockStorage:
         self._lock.acquire()
         try:
             self.output_dir = new_output_dir
-            self.logger.info(f"Ruta de almacenamiento cambiada a: {new_output_dir}")
+            self.logger.info(f"[{str(self.tipo).upper()}] Ruta de almacenamiento cambiada a: {new_output_dir}")
             # Guardado inmediato en la nueva ubicación
             self.flush()
         finally:
