@@ -2,14 +2,14 @@
 
 import os
 import shutil
-import RPi.GPIO as GPIO
+import lgpio
 
-from config import RAIN_SENSOR_PIN
-from utils.storage_utils import find_mounted_usb, has_enough_space
+
+from config import RAIN_SENSOR_PIN, MIN_FREE_MB
+from utils.storage.storage_utils import find_mounted_usb, has_enough_space
 from sensors.network import is_connected, network_status_lines
-from utils.battery_utils import BatteryMonitor
+from utils.sensors.battery_utils import BatteryMonitor
 
-MIN_FREE_MB = 50
 
 def startup_diagnostics(leds, logger=None):
     """
@@ -22,17 +22,28 @@ def startup_diagnostics(leds, logger=None):
     if logger is None:
         from utils.log_utils import setup_logger
         logger = setup_logger("startup")
+    # Inicializa los loggers dedicados para GPS y sincronización de hora
+    from utils.log_utils import setup_logger as setup_sync_logger
+    gps_logger = setup_sync_logger("gps", log_file="gps.log")
+    sync_logger = setup_sync_logger("sync", log_file="sync.log")
 
-    print("\n==================== INICIALIZACIÓN DEL SISTEMA ====================")
+    logger.info("==================== INICIALIZACIÓN DEL SISTEMA ====================")
+    # Mensaje de estación activa
+    try:
+        from config import STATION_NAME, RAIN_INTERVAL_MINUTES
+        msg = f"Estación activa: {STATION_NAME} - Intervalo de adquisición: {RAIN_INTERVAL_MINUTES} min"
+        logger.info(msg)
+    except Exception as e:
+        logger.warning(f"No se pudo mostrar mensaje de estación activa: {e}")
 
     # 1. Verificación del sensor de lluvia
     try:
-        GPIO.setmode(GPIO.BCM)
-        GPIO.setup(RAIN_SENSOR_PIN, GPIO.IN, pull_up_down=GPIO.PUD_UP)
-        print(f"[ OK ] Sensor de lluvia conectado en GPIO {RAIN_SENSOR_PIN}")
+        chip = lgpio.gpiochip_open(0)
+        lgpio.gpio_claim_input(chip, RAIN_SENSOR_PIN)
+        logger.info(f"Sensor de lluvia configurado | GPIO: {RAIN_SENSOR_PIN}")
+        lgpio.gpiochip_close(chip)
     except Exception as e:
-        print(f"[FAIL] Error al configurar el sensor de lluvia: {e}")
-        logger.error(f"Sensor de lluvia no disponible: {e}")
+        logger.error(f"Sensor de lluvia: error al configurar ({e})")
         leds.set("ERROR", True)
 
     # 2. Verificación de la memoria USB
@@ -40,70 +51,94 @@ def startup_diagnostics(leds, logger=None):
     if usb:
         try:
             free_mb = shutil.disk_usage(usb).free // (1024 ** 2)
-            print(f"[ OK ] Memoria USB detectada en {usb} - Espacio libre: {free_mb} MB")
-            logger.info(f"USB detectada en {usb} - Espacio libre: {free_mb} MB")
+            logger.info(f"Memoria USB detectada | Ruta: {usb} | Espacio libre: {free_mb} MB")
             if free_mb < MIN_FREE_MB:
-                print(f"[WARN] Espacio bajo en USB (<{MIN_FREE_MB} MB)")
-                logger.warning("Espacio bajo en USB")
+                logger.warning(f"Memoria USB: espacio bajo (<{MIN_FREE_MB} MB)")
                 leds.set("ERROR", True)
         except Exception as e:
-            print(f"[FAIL] No se pudo acceder al USB montado: {e}")
-            logger.error(f"No se pudo verificar espacio en USB: {e}")
+            logger.error(f"Memoria USB: error al acceder ({e})")
             leds.set("ERROR", True)
     else:
-        print("[WARN] No se detectó memoria USB. Se usará almacenamiento interno.")
-        logger.warning("No se detectó USB. Usando almacenamiento interno.")
+        local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+        logger.warning(f"Memoria USB no detectada | Usando almacenamiento interno: {local_path}")
+        leds.set("MEDIA", True)
 
     # 3. Verificación de espacio local
     local_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     try:
         local_free_mb = shutil.disk_usage(local_path).free // (1024 ** 2)
-        print(f"[ OK ] Espacio en respaldo local: {local_free_mb} MB")
-        logger.info(f"Espacio en respaldo local: {local_free_mb} MB")
+        logger.info(f"Espacio local configurado | Ruta: {local_path} | Espacio libre: {local_free_mb} MB")
     except Exception as e:
-        print(f"[FAIL] No se pudo verificar espacio local: {e}")
-        logger.error(f"No se pudo verificar espacio local: {e}")
+        logger.error(f"Espacio local: error al verificar ({e})")
         leds.set("ERROR", True)
 
-    # 4. Estado del GPS (placeholder)
-    print("[....] GPS: módulo no implementado aún")
-    logger.debug("Estado GPS: no implementado")
-
-    # 5. Estado de LoRa (placeholder)
-    print("[....] LoRa: módulo no implementado aún")
-    logger.debug("Estado LoRa: no implementado")
-
-    # 6. Estado de red
-    for line in network_status_lines():
-        print(line)
-        if "WARN" in line:
-            logger.warning(line.replace("[WARN]", "").strip())
-        elif "OK" in line:
-            logger.info(line.replace("[ OK ]", "").strip())
-
-    # 7. LED de red
-    if is_connected():
-        print("[INFO] Red detectada, encendiendo LED NET")
-        leds.set("NET", True)
-    else:
-        print("[INFO] Sin red, LED NET apagado")
-        leds.set("NET", False)
+    # 4. Estado del GPS
+    try:
+        from config import GPS_PORT, GPS_BAUDRATE, GPS_SYNC_INTERVAL_SECONDS
+        from managers.gps_manager import GPSManager
+        gps_manager = GPSManager(leds=leds, logger=gps_logger, sync_logger=sync_logger, sync_interval_seconds=GPS_SYNC_INTERVAL_SECONDS)
+        gps_manager.start()
+        gps_port_short = os.path.basename(GPS_PORT)
+        logger.info(
+            f"GPS configurado | Puerto: {gps_port_short} | Baudrate: {GPS_BAUDRATE} | "
+            f"Sync interval: {GPS_SYNC_INTERVAL_SECONDS} s"
+        )
+    except Exception as e:
+        logger.debug(f"GPS: módulo no implementado o error ({e})")
 
     # 8. Estado de la batería
     battery = BatteryMonitor()
     battery_info = battery.read_all()
-    battery.close()
+    # battery.close()  # No cerrar el bus I2C aquí para evitar conflictos
 
     # Control visual con LED de batería
     leds.set_battery_status(battery_info["status"])
 
-    # Mensaje en consola
-    print(f"[ OK ] Voltaje de batería inicial: {battery_info['voltage']:.2f} V ({battery_info['status']})")
 
-    # Log según estado
-    if battery_info["status"] == "BAJA":
-        logger.warning("⚠️ Nivel de batería bajo")
+    # 5. Estado del módulo sísmico
+    try:
+        from config import SEISMIC_PORT, SEISMIC_BAUDRATE, SEISMIC_INTERVAL_MINUTES, SEISMIC_MODEL, SEISMIC_SERIAL_NUMBER, SEISMIC_STATION_TYPE
+        from managers.seismic_manager import SeismicManager
+        seismic_config = {
+            "port": SEISMIC_PORT,
+            "baudrate": SEISMIC_BAUDRATE,
+            "interval": SEISMIC_INTERVAL_MINUTES * 60  # en segundos
+        }
+        seismic_manager = SeismicManager(seismic_config, logger=logger)
+        seismic_port_short = os.path.basename(SEISMIC_PORT)
+        logger.info(
+            f"Módulo sísmico configurado | "
+            f"Puerto: {seismic_port_short} | Baudrate: {SEISMIC_BAUDRATE} | "
+            f"Intervalo: {SEISMIC_INTERVAL_MINUTES} min"
+        )
+        # Si quieres arrancar el proceso/hilo, descomenta la siguiente línea:
+        # seismic_manager.start()  # Solo si SeismicManager implementa start/hilo
+    except Exception as e:
+        logger.warning(f"Módulo sísmico: error al inicializar ({e})")
+
+    # 6. Estado de LoRa (placeholder)
+    logger.info("LoRa: módulo no implementado aún")
+    logger.debug("Estado LoRa: no implementado")
+
+    # 7. Estado de red
+    lines, conectado, wlan_ip, eth_ip = network_status_lines()
+    for nivel, mensaje in lines:
+        getattr(logger, nivel)(mensaje)
+    leds.set_network_status(eth_ip, wlan_ip)
+
+
+    # 10. Mensaje en log
+    if battery_info['voltage'] is not None:
+        # Solo mostrar el mensaje con emoji para evitar duplicidad
+        logger.info(f"Voltaje de batería inicial: {battery_info['voltage']:.2f} V | {battery_info['status']}")
     else:
-        logger.info(f"🔋 Voltaje de batería inicial: {battery_info['voltage']:.2f} V - {battery_info['status']}")
+        logger.warning(f"Voltaje de batería inicial: ERROR ({battery_info['status']})")
 
-    print("===================================================================\n")
+    # 11. Log según estado
+    if battery_info["status"] == "BAJA":
+        logger.warning("Nivel de batería bajo")
+    elif battery_info["voltage"] is not None:
+        from datetime import datetime
+    else:
+        logger.error(f"Error al leer voltaje de batería inicial - Estado: {battery_info['status']}")
+    logger.info("===================================================================")
