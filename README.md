@@ -38,10 +38,9 @@ Este proyecto implementa una estación meteorológica y sísmica robusta y autó
 
 ## Instalación
 
-1. Clona el repositorio:
+1. Ubica el proyecto en tu sistema:
    ```bash
-   git clone https://github.com/rotoapanta/rain-gauge-project.git
-   cd rain-gauge-project
+   cd /home/pi/Documents/Projects/volc-pi-project
    ```
 2. Instala dependencias:
    ```bash
@@ -49,7 +48,7 @@ Este proyecto implementa una estación meteorológica y sísmica robusta y autó
    sudo apt install python3-lgpio python3-smbus2 python3-pip
    pip3 install pyserial gpiozero
    ```
-3. Habilita I2C y GPIO en tu Raspberry Pi (`raspi-config`)
+3. Habilita I2C y GPIO en tu Raspberry Pi (`raspi-config`).
 4. Conecta el hardware según el diagrama de pines en la documentación.
 
 ## Configuración de sensores USB-Serial
@@ -79,37 +78,37 @@ Para máxima robustez, usa el symlink persistente de `/dev/serial/by-id/` para c
    ```
 2. Los datos se guardarán automáticamente en la memoria USB si está presente, o en la SD interna si no.
 3. Los LEDs indicarán el estado de cada subsistema (ver tabla de pines y funcionamiento abajo).
-4. El log detallado se encuentra en `logs/rain_monitor.log`.
-5. Los datos sísmicos se registran en el log con el prefijo `[SEISMIC]`.
+4. Logs del servicio en tiempo real: `sudo journalctl -u volcpi.service -f`.
+5. Logs por sensor en archivos rotativos dentro de `./logs/` (por ejemplo: `seismic.log`, `gps.log`).
 
 ## Servicio systemd (arranque automático)
 
 Este proyecto incluye un servicio systemd para ejecutar la estación automáticamente al iniciar el sistema.
 
-- Archivo de unidad: `rain-monitor.service` (en la raíz del repo)
+- Archivo de unidad: `volcpi.service` (en la raíz del repo)
 - Punto de entrada: `main.py`
 - Usuario: `pi`
-- Directorio de trabajo: `/home/pi/Documents/Projects/rain-gauge-project`
+- Directorio de trabajo: `/home/pi/Documents/Projects/volc-pi-project`
 
 ### Instalación rápida
 
 ```bash
 # Copia el archivo de servicio al directorio de systemd
-sudo cp /home/pi/Documents/Projects/rain-gauge-project/rain-monitor.service /etc/systemd/system/rain-monitor.service
+sudo cp /home/pi/Documents/Projects/volc-pi-project/volcpi.service /etc/systemd/system/volcpi.service
 
 # Recarga systemd, habilita y arranca el servicio
 sudo systemctl daemon-reload
-sudo systemctl enable --now rain-monitor.service
+sudo systemctl enable --now volcpi.service
 ```
 
 ### Logs y estado
 
 ```bash
 # Estado del servicio
-systemctl status --no-pager rain-monitor.service
+systemctl status --no-pager volcpi.service
 
 # Logs en tiempo real
-journalctl -u rain-monitor.service -f -n 200
+journalctl -u volcpi.service -f -n 200
 ```
 
 Los logs rotativos por archivo se guardan además en el directorio `./logs/` del proyecto.
@@ -118,33 +117,33 @@ Los logs rotativos por archivo se guardan además en el directorio `./logs/` del
 
 ```bash
 # Iniciar / Detener / Reiniciar
-sudo systemctl start rain-monitor.service
-sudo systemctl stop rain-monitor.service
-sudo systemctl restart rain-monitor.service
+sudo systemctl start volcpi.service
+sudo systemctl stop volcpi.service
+sudo systemctl restart volcpi.service
 
 # Estado e información
-systemctl status --no-pager rain-monitor.service
-systemctl is-active rain-monitor.service
-systemctl is-enabled rain-monitor.service
+systemctl status --no-pager volcpi.service
+systemctl is-active volcpi.service
+systemctl is-enabled volcpi.service
 
 # Habilitar / Deshabilitar en el arranque
-sudo systemctl enable rain-monitor.service
-sudo systemctl disable rain-monitor.service
+sudo systemctl enable volcpi.service
+sudo systemctl disable volcpi.service
 
 # Recargar definición del servicio tras editar el archivo .service
 sudo systemctl daemon-reload
 
 # Logs
-journalctl -u rain-monitor.service -n 200 --no-pager
-journalctl -u rain-monitor.service -f
+journalctl -u volcpi.service -n 200 --no-pager
+journalctl -u volcpi.service -f
 ```
 
 ### Actualizar el servicio tras cambios
-Si editas `rain-monitor.service` o `main.py` y quieres aplicar los cambios:
+Si editas `volcpi.service` o `main.py` y quieres aplicar los cambios:
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl restart rain-monitor.service
+sudo systemctl restart volcpi.service
 ```
 
 ### Requisitos del sistema (permisos y paquetes)
@@ -161,14 +160,14 @@ sudo systemctl restart rain-monitor.service
   ```
 - Habilitar I2C si no lo está (raspi-config o equivalente).
 
-> Nota sobre GPIO: la unidad trae capacidades CAP_SYS_RAWIO por compatibilidad. Si el usuario `pi` pertenece a `gpio`, puedes eliminar esas capacidades del unit para seguir el principio de mínimos privilegios.
+> Nota sobre GPIO/Serial/I2C: con los grupos dialout,gpio,i2c configurados, no se requieren capacidades especiales en el servicio.
 
 ### Sincronización horaria por GPS (opcional pero recomendado)
 El código sincroniza la hora del sistema con el GPS ejecutando `sudo date -u --set ...`. Para que funcione de forma no interactiva:
 
 - Opción A (recomendada): permitir `date` sin contraseña para `pi`.
   ```bash
-  sudo visudo -f /etc/sudoers.d/rain-gauge
+  sudo visudo -f /etc/sudoers.d/volcpi
   # Añadir esta línea y guardar:
   # pi ALL=(root) NOPASSWD: /bin/date
   ```
@@ -191,8 +190,8 @@ El código sincroniza la hora del sistema con el GPS ejecutando `sudo date -u --
 ### Desinstalación
 
 ```bash
-sudo systemctl disable --now rain-monitor.service
-sudo rm /etc/systemd/system/rain-monitor.service
+sudo systemctl disable --now volcpi.service
+sudo rm /etc/systemd/system/volcpi.service
 sudo systemctl daemon-reload
 ```
 
@@ -201,13 +200,51 @@ sudo systemctl daemon-reload
 ```
 ├── main.py                  # Punto de entrada principal
 ├── config.py                # Configuración general y de hardware
-├── station/weather_station.py
+├── volcpi.service           # Unidad systemd del servicio
+├── diagnostics/
+│   └── startup.py
+├── managers/                # Lógica de alto nivel (seismic, rain, gps, etc.)
+│   ├── battery_manager.py
+│   ├── gps_manager.py
+│   ├── lora_manager.py
+│   ├── rain_manager.py
+│   └── seismic_manager.py
 ├── sensors/                 # Módulos de sensores (rain, gps, ads1115, seismic, etc.)
+│   ├── adc.py
+│   ├── base_sensor.py
+│   ├── gps.py
+│   ├── lora.py
+│   ├── network.py
+│   ├── rain.py
+│   └── seismic.py
+├── station/
+│   └── monitoring_station.py
 ├── utils/                   # Utilidades (leds, almacenamiento, batería, USB, logs)
-├── managers/                # Lógica de alto nivel (GPS, power guard)
-├── logs/                    # Logs del sistema
-├── DTA/                     # Datos de lluvia almacenados
-└── test/                    # Scripts de prueba de hardware
+│   ├── extractors/
+│   │   └── data_extractors.py
+│   ├── sensors/
+│   │   ├── battery_utils.py
+│   │   ├── gps_utils.py
+│   │   ├── seismic_utils.py
+│   │   └── time_utils.py
+│   ├── storage/
+│   │   ├── block_storage.py
+│   │   ├── migrate_to_usb.py
+│   │   └── storage_utils.py
+│   ├── battery_guard.py
+│   ├── data_schemas.py
+│   ├── generic_storage.py
+│   ├── leds_monitor.py
+│   ├── leds_utils.py
+│   ├── log_utils.py
+│   └── network_monitor.py
+├── test/
+│   ├── test_serial_input.py
+│   ├── test_serial_seismic.py
+│   ├── test_leds.py
+│   └── ...
+├── logs/                    # Logs del sistema (archivos rotativos)
+└── DTA/                     # Datos almacenados
 ```
 
 ## Pines de LEDs
