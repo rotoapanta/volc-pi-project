@@ -14,6 +14,18 @@
             "PASA_BAJO": "0008",
             "PASA_ALTO": "0051",
             "BATERIA": 12.47
+        },
+        {
+            "FECHA": "2025-10-30",
+            "TIEMPO": "14:15:48",
+            "LATITUD": -0.212183,
+            "LONGITUD": -78.491557,
+            "ALTURA": 2814.1,
+            "ALERTA": false,
+            "PASA_BANDA": "0015",
+            "PASA_BAJO": "0014",
+            "PASA_ALTO": "0057",
+            "BATERIA": 12.47
         }
     ]
 }
