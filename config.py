@@ -46,6 +46,26 @@ SEISMIC_SERIAL_NUMBER = "4513"
 SEISMIC_PORT = "/dev/serial/by-id/usb-Prolific_Technology_Inc._USB-Serial_Controller_D-if00-port0"
 SEISMIC_BAUDRATE = 9600
 
+# Configuración de LoRa
+LORA_PORT = "/dev/serial/by-id/usb-1a86_USB_Single_Serial_5A36023741-if00"
+LORA_BAUDRATE = 115200
+
+# Política unificada para puertos seriales (aplicada a sísmico, GPS y futuro LoRa)
+# Política unificada de reconexión serial
+# - SERIAL_DISCONNECT_VERIFICATIONS: número de verificaciones rápidas al detectar desconexión
+# - SERIAL_BACKGROUND_CHECK_SECONDS: intervalo del proceso en segundo plano para reintentar conexión
+SERIAL_DISCONNECT_VERIFICATIONS = 3
+SERIAL_BACKGROUND_CHECK_SECONDS = 30
+# Retardo entre intentos rápidos para evitar múltiples logs en el mismo segundo
+SERIAL_QUICK_RETRY_DELAY_SECONDS = 1
+# Control de verbosidad
+SERIAL_LOG_IMMEDIATE_RETRY_INFO = False
+SERIAL_LOG_BACKGROUND_ERRORS = False
+SERIAL_LOG_COOLDOWN = False
+SERIAL_READ_DELAY = 0.2
+SERIAL_BACKOFF_FACTOR = 2.0
+SERIAL_MAX_BACKOFF = 2.0
+
 # Configuración del ADS1115 (batería)
 ADS1115_ADDRESS = 0x48
 I2C_BUS = 1

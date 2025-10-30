@@ -135,12 +135,17 @@ class BlockStorage:
             existing = self._load_existing_block(filename)
             if "LECTURAS" not in existing or not isinstance(existing.get("LECTURAS"), list):
                 existing = self.create_empty_structure()
-            # Reemplazar con el estado actual en memoria (diseño actual: última lectura por sub‑intervalo)
+            # Fusionar: conservar lecturas existentes y actualizar/insertar las nuevas por (FECHA,TIEMPO)
+            lecturas_map = {(l.get("FECHA"), l.get("TIEMPO")): l for l in existing.get("LECTURAS", [])}
+            for new in data:
+                key = (new.get("FECHA"), new.get("TIEMPO"))
+                lecturas_map[key] = new  # actualiza si existe, inserta si no
+            merged_lecturas = [lecturas_map[k] for k in sorted(lecturas_map.keys())]
             file_data = {
                 "TIPO": self.tipo,
                 "NOMBRE": self.station_name,
                 "IDENTIFICADOR": self.identifier,
-                "LECTURAS": data
+                "LECTURAS": merged_lecturas
             }
             tmp_filename = filename + ".tmp"
             with open(tmp_filename, "w") as f:
